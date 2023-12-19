@@ -59,7 +59,7 @@ func listDir(dir string) []FileItem {
 
 func output(dir string) {
 	base := filepath.Base(testDir)
-	fmt.Printf("Index of /%v/\n", base)
+	fmt.Printf("Index of / %v /\n", base)
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', 0)
 	for _, e := range listDir(testDir) {
