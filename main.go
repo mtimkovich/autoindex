@@ -5,12 +5,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"text/tabwriter"
 	"time"
 
 	"github.com/dustin/go-humanize"
 )
 
-const testDir = "/mnt/chromeos/MyFiles/Downloads/"
+const testDir = "/mnt/chromeos/MyFiles/Downloads/uh"
 
 type FileItem struct {
 	name    string
@@ -56,10 +57,17 @@ func listDir(dir string) []FileItem {
 	return items
 }
 
-func main() {
+func output(dir string) {
 	base := filepath.Base(testDir)
 	fmt.Printf("Index of /%v/\n", base)
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', 0)
 	for _, e := range listDir(testDir) {
-		fmt.Println(e)
+		fmt.Fprintln(w, e)
+		w.Flush()
 	}
+}
+
+func main() {
+	output(testDir)
 }
