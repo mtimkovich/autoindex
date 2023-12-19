@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
-	"text/tabwriter"
 	"time"
 
 	"github.com/dustin/go-humanize"
 )
 
-const testDir = "/mnt/chromeos/MyFiles/Downloads/uh"
+var templates = template.Must(template.ParseFiles("autoindex.html"))
 
 type FileItem struct {
 	name    string
@@ -20,17 +21,10 @@ type FileItem struct {
 	isDir   bool
 }
 
-func (f FileItem) String() string {
-	var bytes string
-
-	if f.isDir {
-		bytes = "-"
-	} else {
-		bytes = humanize.Bytes(uint64(f.size))
-	}
-
-	modTime := humanize.Time(f.modTime)
-	return fmt.Sprintf("%v\t%v\t%v", f.name, modTime, bytes)
+type PrettyFileItem struct {
+	Name    string
+	ModTime string
+	Size    string
 }
 
 func listDir(dir string) []FileItem {
@@ -57,17 +51,62 @@ func listDir(dir string) []FileItem {
 	return items
 }
 
-func output(dir string) {
-	base := filepath.Base(testDir)
-	fmt.Printf("Index of / %v /\n", base)
+func prettyOutput(dir string) []PrettyFileItem {
+	items := listDir(dir)
+	var pretties []PrettyFileItem
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', 0)
-	for _, e := range listDir(testDir) {
-		fmt.Fprintln(w, e)
-		w.Flush()
+	for _, f := range items {
+		var bytes string
+
+		if f.isDir {
+			bytes = "-"
+		} else {
+			bytes = humanize.Bytes(uint64(f.size))
+		}
+
+		pretties = append(pretties, PrettyFileItem{
+			Name:    f.name,
+			ModTime: humanize.Time(f.modTime),
+			Size:    bytes,
+		})
+	}
+
+	return pretties
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	webPath := r.URL.Path[len("/"):]
+	if webPath != "" {
+		http.Error(w, "HTTP 403 - Forbidden", http.StatusForbidden)
+		return
+	}
+
+	const testDir = "/mnt/chromeos/MyFiles/Downloads/uh"
+	if webPath == "" {
+		webPath = filepath.Base(testDir)
+	}
+
+	data := struct {
+		Path  string
+		Items []PrettyFileItem
+	}{
+		Path:  webPath,
+		Items: prettyOutput(testDir),
+	}
+
+	err := templates.ExecuteTemplate(w, "autoindex.html", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func main() {
-	output(testDir)
+	http.HandleFunc("/", handler)
+	port := ":3333"
+
+	fmt.Printf("Listening on http://localhost%v/\n", port)
+	err := http.ListenAndServe(port, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

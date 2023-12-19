@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title>Index of / {{.Path}} /</title>
+	<style>
+	  table {
+		font-family: monospace;
+	  }
+
+	  .header {
+		font-weight: bold;
+	  }
+
+	  td, th {
+		border-left: 100px solid #FFF;
+		text-align: left;
+	  }
+
+	  tr>td:first-child {
+		border: 0px;
+	  }
+	</style>
+  </head>
+  <body>
+    <h1>Index of / {{.Path}} /</h1>
+    <hr>
+    <table>
+	  <tr class="header">
+		<td>File name</td>
+		<td>Last Modified</td>
+		<td>File Size</td>
+	  </tr>
+      {{range .Items}}
+      <tr>
+		<td><a href="{{.Name}}">{{.Name}}</a></td>
+        <td>{{.ModTime}}</td>
+        <td>{{.Size}}</td>
+      </tr>
+      {{end}}
+    </table>
+    <hr>
+  </body>
+</html>
