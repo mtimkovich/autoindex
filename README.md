@@ -7,7 +7,7 @@ Silly little nginx autoindex clone.
 - [x] List filenames, sizes, and modTime
 - [x] Create server, output to html
 - [x] File path links
-- [ ] File path bread crumb
-- [ ] Sort directories first
-- [ ] Sort by name, modTime, or size
+- [ ] File path breadcrumb
+- [x] Sort directories first
 - [ ] Mobile display
+- [ ] Sort by name, modTime, or size (JavaScript)

@@ -1,15 +1,18 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path"
+	"slices"
 	"text/template"
 	"time"
 
 	"github.com/dustin/go-humanize"
+	sf "github.com/sa-/slicefunk"
 )
 
 var templates = template.Must(template.ParseFiles("autoindex.html"))
@@ -25,6 +28,17 @@ type PrettyFileItem struct {
 	Name    string
 	ModTime string
 	Size    string
+	IsDir   bool
+}
+
+func sortFiles(a, b FileItem) int {
+	if a.isDir && !b.isDir {
+		return -1
+	} else if !a.isDir && b.isDir {
+		return 1
+	} else {
+		return cmp.Compare(a.name, b.name)
+	}
 }
 
 func readDir(dir string) ([]FileItem, error) {
@@ -48,50 +62,44 @@ func readDir(dir string) ([]FileItem, error) {
 		})
 	}
 
+	slices.SortFunc(items, sortFiles)
 	return items, nil
 }
 
-func prettyOutput(dir string) ([]PrettyFileItem, error) {
-	items, err := readDir(dir)
-	if err != nil {
-		return nil, err
-	}
-	var pretties []PrettyFileItem
+// Read item for display.
+func prettify(item FileItem) PrettyFileItem {
+	var bytes string
+	name := item.name
 
-	for _, f := range items {
-		var bytes string
-		name := f.name
-
-		if f.isDir {
-			bytes = "-"
-			name += "/"
-		} else {
-			bytes = humanize.Bytes(uint64(f.size))
-		}
-
-		pretties = append(pretties, PrettyFileItem{
-			Name:    name,
-			ModTime: humanize.Time(f.modTime),
-			Size:    bytes,
-		})
+	if item.isDir {
+		bytes = "-"
+		name += "/"
+	} else {
+		bytes = humanize.Bytes(uint64(item.size))
 	}
 
-	return pretties, nil
+	return PrettyFileItem{
+		Name:    name,
+		ModTime: humanize.Time(item.modTime),
+		Size:    bytes,
+	}
 }
 
 func renderDir(w http.ResponseWriter, r *http.Request, dir string, webPath string) {
 	fullPath := path.Join(dir, webPath)
-	items, err := prettyOutput(fullPath)
+	items, err := readDir(fullPath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	pretty := sf.Map(items, prettify)
 
 	data := struct {
 		Path  string
 		Items []PrettyFileItem
 	}{
 		Path:  webPath,
-		Items: items,
+		Items: pretty,
 	}
 
 	err = templates.ExecuteTemplate(w, "autoindex.html", data)
@@ -110,7 +118,6 @@ func index(dir string) func(w http.ResponseWriter, r *http.Request) {
 				renderDir(w, r, dir, webPath)
 				return
 			} else {
-				// TODO: May want to fall back on nginx here.
 				http.ServeFile(w, r, fullPath)
 				return
 			}
@@ -121,7 +128,7 @@ func index(dir string) func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	const testDir = "/mnt/chromeos/MyFiles/Downloads/uh"
+	const testDir = "/mnt/chromeos/MyFiles/Downloads/"
 
 	http.HandleFunc("/", index(testDir))
 	port := ":3333"
@@ -131,5 +138,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
