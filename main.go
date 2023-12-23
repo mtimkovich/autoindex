@@ -29,10 +29,9 @@ type PrettyFileItem struct {
 	Name    string
 	ModTime string
 	Size    string
-	IsDir   bool
 }
 
-func sortFiles(a, b FileItem) int {
+func sortFiles(a, b *FileItem) int {
 	if a.isDir && !b.isDir {
 		return -1
 	} else if !a.isDir && b.isDir {
@@ -42,8 +41,8 @@ func sortFiles(a, b FileItem) int {
 	return cmp.Compare(a.name, b.name)
 }
 
-func readDir(dir string) ([]FileItem, error) {
-	var items []FileItem
+func readDir(dir string) ([]*FileItem, error) {
+	var items []*FileItem
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func readDir(dir string) ([]FileItem, error) {
 			return nil, err
 		}
 
-		items = append(items, FileItem{
+		items = append(items, &FileItem{
 			name:    e.Name(),
 			isDir:   e.IsDir(),
 			size:    info.Size(),
@@ -68,7 +67,7 @@ func readDir(dir string) ([]FileItem, error) {
 }
 
 // Ready item for display.
-func prettify(item FileItem) PrettyFileItem {
+func prettify(item *FileItem) *PrettyFileItem {
 	var bytes string
 	name := item.name
 
@@ -79,7 +78,7 @@ func prettify(item FileItem) PrettyFileItem {
 		bytes = humanize.Bytes(uint64(item.size))
 	}
 
-	return PrettyFileItem{
+	return &PrettyFileItem{
 		Name:    name,
 		ModTime: humanize.Time(item.modTime),
 		Size:    bytes,
@@ -94,12 +93,11 @@ func renderDir(w http.ResponseWriter, r *http.Request, dir string, webPath strin
 	}
 
 	webPath = "/" + webPath
-
 	pretty := sf.Map(items, prettify)
 
 	data := struct {
 		Path  string
-		Items []PrettyFileItem
+		Items []*PrettyFileItem
 	}{
 		Path:  webPath,
 		Items: pretty,
