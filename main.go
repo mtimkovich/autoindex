@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,9 +37,9 @@ func sortFiles(a, b FileItem) int {
 		return -1
 	} else if !a.isDir && b.isDir {
 		return 1
-	} else {
-		return cmp.Compare(a.name, b.name)
 	}
+
+	return cmp.Compare(a.name, b.name)
 }
 
 func readDir(dir string) ([]FileItem, error) {
@@ -92,6 +93,8 @@ func renderDir(w http.ResponseWriter, r *http.Request, dir string, webPath strin
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	webPath = "/" + webPath
+
 	pretty := sf.Map(items, prettify)
 
 	data := struct {
@@ -128,13 +131,14 @@ func index(dir string) func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	const testDir = "/mnt/chromeos/MyFiles/Downloads/"
+	port := flag.Int("port", 3333, "Port to run on")
+	dir := flag.String("dir", ".", "Directory to serve")
+	flag.Parse()
 
-	http.HandleFunc("/", index(testDir))
-	port := ":3333"
+	http.HandleFunc("/", index(*dir))
 
-	fmt.Printf("Listening on http://localhost%v/\n", port)
-	err := http.ListenAndServe(port, nil)
+	fmt.Printf("Listening on http://localhost:%v/\n", *port)
+	err := http.ListenAndServe(fmt.Sprintf(":%v", *port), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
