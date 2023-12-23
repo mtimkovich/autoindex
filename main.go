@@ -4,12 +4,12 @@ import (
 	"cmp"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"slices"
-	"text/template"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -67,7 +67,7 @@ func readDir(dir string) ([]FileItem, error) {
 	return items, nil
 }
 
-// Read item for display.
+// Ready item for display.
 func prettify(item FileItem) PrettyFileItem {
 	var bytes string
 	name := item.name
