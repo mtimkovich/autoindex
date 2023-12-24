@@ -8,6 +8,6 @@ Silly little nginx autoindex clone.
 - [x] Create server, output to html
 - [x] File path links
 - [x] Sort directories first
-- [ ] File path breadcrumb
+- [x] File path breadcrumb
 - [ ] Mobile display
 - [ ] Sort by name, modTime, or size (JavaScript)

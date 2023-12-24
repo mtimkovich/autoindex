@@ -2,16 +2,18 @@ package main
 
 import (
 	"cmp"
-	"flag"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
+	"github.com/alexflint/go-arg"
 	"github.com/dustin/go-humanize"
 	sf "github.com/sa-/slicefunk"
 )
@@ -20,6 +22,7 @@ var templates = template.Must(template.ParseFiles("autoindex.html"))
 
 type FileItem struct {
 	name    string
+	link    string
 	modTime time.Time
 	size    int64
 	isDir   bool
@@ -27,8 +30,36 @@ type FileItem struct {
 
 type PrettyFileItem struct {
 	Name    string
+	Link    string
 	ModTime string
 	Size    string
+}
+
+type Link struct {
+	Text string
+	Href string
+}
+
+func breadcrumb(webPath string) []*Link {
+	split := strings.Split(webPath, "/")
+	var crumbs []*Link
+
+	link := "/"
+	for i, p := range split {
+		if p == "" {
+			continue
+		}
+
+		if i > 0 {
+			link = path.Join(link, p)
+		}
+		crumbs = append(crumbs, &Link{
+			Text: p,
+			Href: link,
+		})
+	}
+
+	return crumbs
 }
 
 func sortFiles(a, b *FileItem) int {
@@ -41,7 +72,7 @@ func sortFiles(a, b *FileItem) int {
 	return cmp.Compare(a.name, b.name)
 }
 
-func readDir(dir string) ([]*FileItem, error) {
+func readDir(dir, webPath string) ([]*FileItem, error) {
 	var items []*FileItem
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -56,6 +87,7 @@ func readDir(dir string) ([]*FileItem, error) {
 
 		items = append(items, &FileItem{
 			name:    e.Name(),
+			link:    path.Join("/", webPath, e.Name()),
 			isDir:   e.IsDir(),
 			size:    info.Size(),
 			modTime: info.ModTime(),
@@ -80,6 +112,7 @@ func prettify(item *FileItem) *PrettyFileItem {
 
 	return &PrettyFileItem{
 		Name:    name,
+		Link:    item.link,
 		ModTime: humanize.Time(item.modTime),
 		Size:    bytes,
 	}
@@ -87,20 +120,23 @@ func prettify(item *FileItem) *PrettyFileItem {
 
 func renderDir(w http.ResponseWriter, r *http.Request, dir string, webPath string) {
 	fullPath := path.Join(dir, webPath)
-	items, err := readDir(fullPath)
+	items, err := readDir(fullPath, webPath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	webPath = "/" + webPath
 	pretty := sf.Map(items, prettify)
+	webPath = path.Join(filepath.Base(dir), webPath)
+	pathCrumbs := breadcrumb(webPath)
 
 	data := struct {
-		Path  string
-		Items []*PrettyFileItem
+		Path       string
+		Breadcrumb []*Link
+		Items      []*PrettyFileItem
 	}{
-		Path:  webPath,
-		Items: pretty,
+		Path:       webPath,
+		Breadcrumb: pathCrumbs,
+		Items:      pretty,
 	}
 
 	err = templates.ExecuteTemplate(w, "autoindex.html", data)
@@ -129,14 +165,18 @@ func index(dir string) func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := flag.Int("port", 3333, "Port to run on")
-	dir := flag.String("dir", ".", "Directory to serve")
-	flag.Parse()
+	var args struct {
+		Port int    `arg:"-p" default:"3333" help:"Port to run on"`
+		Dir  string `arg:"-d" default:"." help:"Directory to serve"`
+	}
 
-	http.HandleFunc("/", index(*dir))
+	arg.MustParse(&args)
 
-	fmt.Printf("Listening on http://localhost:%v/\n", *port)
-	err := http.ListenAndServe(fmt.Sprintf(":%v", *port), nil)
+	http.HandleFunc("/", index(args.Dir))
+	port := fmt.Sprintf(":%v", args.Port)
+
+	fmt.Printf("Running on http://localhost%v\n", port)
+	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
