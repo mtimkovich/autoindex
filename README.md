@@ -2,7 +2,7 @@
 
 Silly little nginx autoindex clone.
 
-![Preview](https://github.com/mtimkovich/autoindex/blob/main/preview.png)
+![Preview](https://github.com/mtimkovich/autoindex/blob/main/preview.png | width=400px)
 
 ## Features
 
