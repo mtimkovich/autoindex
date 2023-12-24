@@ -6,7 +6,19 @@ Silly little nginx autoindex clone.
 
 ## Features
 
-My goal was to create a file server like nginx's autoindex but add some additional features like file path breadcrumbing and additional sorting features. But at the same time I wanted to keep the simple display of nginx's UI.
+My goal was to create a file server like nginx's autoindex but add some additional features like file path breadcrumbing and field sorting. But at the same time I wanted to keep the simple display of nginx's UI.
+
+
+## Usage
+
+```
+Usage: autoindex [--port PORT] [--dir DIR]
+
+Options:
+  --port PORT, -p PORT   port to run on [default: 3333]
+  --dir DIR, -d DIR      directory to serve [default: .]
+  --help, -h             display this help and exit
+```
 
 ## Roadmap
 

@@ -166,8 +166,8 @@ func index(dir string) func(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var args struct {
-		Port int    `arg:"-p" default:"3333" help:"Port to run on"`
-		Dir  string `arg:"-d" default:"." help:"Directory to serve"`
+		Port int    `arg:"-p" default:"3333" help:"port to run on"`
+		Dir  string `arg:"-d" default:"." help:"directory to serve"`
 	}
 
 	arg.MustParse(&args)
