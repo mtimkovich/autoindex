@@ -122,7 +122,7 @@ type row struct {
 	Bytes                  int64
 }
 
-type crumb struct{ Name, Sep, Href string } // Sep is the plain-text "/" after the link
+type crumb struct{ Pre, Name, Href string } // Pre is the plain-text separator before the link
 
 // up returns the relative link n directories above the current one.
 func up(n int) string {
@@ -185,18 +185,18 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 		r.NamePad, r.DatePad, r.SizePad = pad(r.Name, nameW), pad(r.Date, dateW), pad(r.Size, sizeW)
 	}
 
-	title := "Index of " + p
+	title := "Index of " + req.Host + p
 	if p != "/" {
 		title += "/"
 	}
-	// Breadcrumbs for the heading: "/", then one link per path segment.
+	// Breadcrumbs for the heading: the host (root), then one link per path segment.
 	segs := []string{}
 	if p != "/" {
 		segs = strings.Split(strings.Trim(p, "/"), "/")
 	}
-	crumbs := []crumb{{"/", "", up(len(segs))}}
+	crumbs := []crumb{{"", req.Host, up(len(segs))}}
 	for i, seg := range segs {
-		crumbs = append(crumbs, crumb{seg, "/", up(len(segs) - 1 - i)})
+		crumbs = append(crumbs, crumb{" / ", seg, up(len(segs) - 1 - i)})
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
