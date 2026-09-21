@@ -89,23 +89,50 @@ nav{position:static;max-height:50vh;max-width:none;border:0;border-bottom:1px so
 document.getElementById("tt").onchange = function () {
   try { localStorage.setItem("tree", this.checked ? "1" : "0"); } catch (e) {}
 };
-// Expand or collapse a folder; children that aren't in the page are fetched.
-document.getElementById("tree").onclick = function (e) {
-  var b = e.target.closest("button");
-  if (!b) return;
-  var li = b.parentNode, ul = li.querySelector("ul");
-  if (ul || li.classList.contains("open")) return li.classList.toggle("open");
+var tree = document.getElementById("tree");
+function load(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch (e) { return def; } }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+var opened = load("treeOpen", []); // paths of folders the user expanded
+
+// Expand a folder, fetching its children first if they aren't in the page.
+function expand(li) {
+  var b = li.querySelector("button");
+  if (li.querySelector("ul") || !b) { li.classList.add("open"); return Promise.resolve(); }
   var a = li.querySelector("a");
-  fetch(a.href + "?tree=1").then(function (r) { return r.text(); }).then(function (html) {
+  return fetch(a.href + "?tree=1").then(function (r) { return r.text(); }).then(function (html) {
     var d = document.createElement("div");
     d.innerHTML = html;
-    ul = d.firstChild;
+    var ul = d.firstChild;
     if (!ul || !ul.children.length) return b.replaceWith(Object.assign(document.createElement("span"), {className: "sp"}));
     [].forEach.call(ul.querySelectorAll("a"), function (x) { x.href = new URL(x.getAttribute("href"), a.href).href; });
     li.appendChild(ul);
     li.classList.add("open");
   });
+}
+
+tree.onclick = function (e) {
+  var b = e.target.closest("button");
+  if (!b) return;
+  var li = b.parentNode, p = li.querySelector("a").pathname;
+  if (li.classList.contains("open")) {
+    li.classList.remove("open");
+    opened = opened.filter(function (x) { return x !== p; });
+  } else {
+    expand(li);
+    if (opened.indexOf(p) < 0) opened.push(p);
+  }
+  save("treeOpen", opened);
 };
+
+// Reopen the folders expanded on earlier pages (parents first) and restore the scroll position.
+tree.scrollTop = load("treeScroll", 0);
+opened.slice().sort(function (a, b) { return a.length - b.length; }).reduce(function (chain, p) {
+  return chain.then(function () {
+    var li = [].find.call(tree.querySelectorAll("li"), function (l) { return l.querySelector("a").pathname === p; });
+    return li && expand(li);
+  });
+}, Promise.resolve()).then(function () { tree.scrollTop = load("treeScroll", 0); });
+addEventListener("pagehide", function () { save("treeScroll", tree.scrollTop); });
 </script>{{end}}
 </body>
 </html>
