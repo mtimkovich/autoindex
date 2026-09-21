@@ -1,0 +1,58 @@
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title>
+<style>
+pre{overflow-x:auto}
+a{color:#666;text-decoration:none}
+a:hover{color:#000;text-decoration:underline}
+b a,b a:hover{color:inherit} /* headers keep the text color */
+i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline off it */
+</style></head>
+<body>
+<h1>{{.Title}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
+
+{{if .Parent}}<a href="../">../</a>
+{{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
+</span>{{end}}</span></pre><hr>
+<script>
+(function () {
+  var box = document.getElementById("rows");
+  var rows = [].slice.call(box.children);
+  var heads = [].slice.call(document.querySelectorAll("[data-k]"));
+  var first = {name: 1, date: -1, size: -1}; // first click: name asc, others desc
+  var sort = {k: "name", o: 1};
+  try {
+    var s = JSON.parse(localStorage.getItem("sort"));
+    if (s && first[s.k] && (s.o === 1 || s.o === -1)) sort = s;
+  } catch (e) {}
+
+  function cmp(a, b) {
+    var d = b.dataset.d - a.dataset.d; // directories stay on top
+    if (d) return d;
+    var f = {date: "t", size: "n"}[sort.k];
+    if (f && (d = a.dataset[f] - b.dataset[f])) return d * sort.o;
+    var x = a.dataset.s, y = b.dataset.s;
+    if (!f && x !== y) return (x < y ? -1 : 1) * sort.o;
+    return x < y ? -1 : x > y ? 1 : 0;
+  }
+
+  function apply() {
+    rows.sort(cmp).forEach(function (r) { box.appendChild(r); });
+    heads.forEach(function (h) {
+      h.lastChild.textContent = h.dataset.k === sort.k ? (sort.o === 1 ? " ▲" : " ▼") : "  ";
+    });
+  }
+
+  heads.forEach(function (h) {
+    h.onclick = function (e) {
+      e.preventDefault();
+      var k = h.dataset.k;
+      sort = {k: k, o: k === sort.k ? -sort.o : first[k]};
+      try { localStorage.setItem("sort", JSON.stringify(sort)); } catch (e) {}
+      apply();
+    };
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
