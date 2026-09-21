@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -185,25 +186,28 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 		r.NamePad, r.DatePad, r.SizePad = pad(r.Name, nameW), pad(r.Date, dateW), pad(r.Size, sizeW)
 	}
 
-	title := "Index of " + req.Host + p
-	if p != "/" {
-		title += "/"
-	}
 	// Breadcrumbs for the heading: the host (root), then one link per path segment.
+	host := displayHost(req.Host)
 	segs := []string{}
 	if p != "/" {
 		segs = strings.Split(strings.Trim(p, "/"), "/")
 	}
-	crumbs := []crumb{{"", req.Host, up(len(segs))}}
+	crumbs := []crumb{{"", host, up(len(segs))}}
+	trail := host
 	for i, seg := range segs {
-		crumbs = append(crumbs, crumb{" / ", seg, up(len(segs) - 1 - i)})
+		crumbs = append(crumbs, crumb{" > ", seg, up(len(segs) - 1 - i)})
+		trail += " > " + seg
 	}
-
+	// Page title: "current folder - host > folder > folder".
+	title := trail
+	if len(segs) > 0 {
+		title = segs[len(segs)-1] + " - " + trail
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	data := map[string]any{"Title": title, "Crumbs": crumbs, "Parent": p != "/", "Rows": rows,
 		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW)}
 	if *tree {
-		data["Tree"] = treeRoot(req.Host, segs)
+		data["Tree"] = treeRoot(host, segs)
 	}
 	err := tmpl.Execute(w, data)
 	if err != nil {
@@ -254,4 +258,16 @@ func plural(n int, unit string) string {
 		return "1 " + unit + " ago"
 	}
 	return fmt.Sprintf("%d %ss ago", n, unit)
+}
+
+// displayHost drops the port unless the host is an IP address.
+func displayHost(h string) string {
+	name, _, err := net.SplitHostPort(h)
+	if err != nil {
+		name = strings.Trim(h, "[]")
+	}
+	if net.ParseIP(name) != nil {
+		return h
+	}
+	return name
 }
