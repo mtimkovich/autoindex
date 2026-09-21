@@ -29,6 +29,7 @@ var (
 	root = flag.String("root", ".", "directory to serve")
 	addr = flag.Int("addr", 8080, "port to listen on")
 	all  = flag.Bool("all", false, "show dotfiles")
+	tree = flag.Bool("tree", false, "enable the folder tree sidebar")
 )
 
 func main() {
@@ -101,7 +102,14 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "403 Forbidden", http.StatusForbidden)
 		return
 	}
-	listing(w, p, full, entries)
+	if *tree && r.URL.Query().Get("tree") == "1" {
+		// Sub-folders of this directory, for the sidebar to load on demand.
+		if err := tmpl.ExecuteTemplate(w, "list", treeKids(full, "", "./", 0, nil)); err != nil {
+			log.Print(err)
+		}
+		return
+	}
+	listing(w, r, p, full, entries)
 }
 
 type row struct {
@@ -126,7 +134,7 @@ func up(n int) string {
 
 func pad(s string, w int) string { return strings.Repeat(" ", w-utf8.RuneCountInString(s)) }
 
-func listing(w http.ResponseWriter, p, full string, entries []os.DirEntry) {
+func listing(w http.ResponseWriter, req *http.Request, p, full string, entries []os.DirEntry) {
 	now := time.Now()
 	var rows []row
 	for _, e := range entries {
@@ -192,8 +200,12 @@ func listing(w http.ResponseWriter, p, full string, entries []os.DirEntry) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := tmpl.Execute(w, map[string]any{"Title": title, "Crumbs": crumbs, "Parent": p != "/", "Rows": rows,
-		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW)})
+	data := map[string]any{"Title": title, "Crumbs": crumbs, "Parent": p != "/", "Rows": rows,
+		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW)}
+	if *tree {
+		data["Tree"] = treeRoot(req.Host, segs)
+	}
+	err := tmpl.Execute(w, data)
 	if err != nil {
 		log.Print(err)
 	}

@@ -6,13 +6,41 @@ a{color:#666;text-decoration:none}
 a:hover{color:#000;text-decoration:underline}
 b a,b a:hover{color:inherit} /* column headers keep the text color */
 i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline off it */
+#tt{display:none}
+.tt{display:inline-block;margin:.3em 0;padding:.1em .6em;border:1px solid #ccc;border-radius:4px;color:#666;font:13px monospace;cursor:pointer;user-select:none}
+.tt:hover{color:#000;border-color:#999}
+#tt:checked+.tt{background:#eee}
+.wrap{display:flex;gap:1em}
+main{flex:1;min-width:0}
+nav{display:none;font:13px monospace;position:sticky;top:0;align-self:flex-start;max-height:100vh;overflow:auto;min-width:12em;max-width:22em;padding:.5em 1em .5em 0;border-right:1px solid #ddd}
+#tt:checked~.wrap nav{display:block}
+nav ul{list-style:none;margin:0;padding-left:1.2em}
+nav>ul{padding-left:0}
+nav li{white-space:nowrap;line-height:1.7}
+nav li>ul{display:none}
+nav li.open>ul{display:block}
+nav button,nav .sp{display:inline-block;width:1.2em;padding:0;border:0;background:none;color:#666;font:inherit;text-align:center;cursor:pointer}
+nav button::before{content:"\25B8"}
+nav li.open>button::before{content:"\25BE"}
+nav a{padding-left:1.5em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M1 3h5l2 2h7v8H1z'/%3E%3C/svg%3E") no-repeat left center/1.1em}
+nav .cur>a{color:#000;font-weight:bold}
+@media(max-width:700px){
+.wrap{display:block}
+nav{position:static;max-height:50vh;max-width:none;border:0;border-bottom:1px solid #ddd;margin-bottom:.5em}
+}
 </style></head>
 <body>
+{{if .Tree}}<input type="checkbox" id="tt"><label for="tt" class="tt" title="Show or hide the folder tree">&#9776; Folders</label>
+<script>try { document.getElementById("tt").checked = localStorage.getItem("tree") === "1"; } catch (e) {}</script>
+<div class="wrap">
+<nav id="tree"><ul>{{template "node" .Tree}}</ul></nav>
+<main>{{end}}
 <h1>Index of {{range .Crumbs}}<a href="{{.Href}}">{{.Name}}</a>{{.Sep}}{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
 
 {{if .Parent}}<a href="../">../</a>
 {{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
 </span>{{end}}</span></pre><hr>
+{{if .Tree}}</main></div>{{end}}
 <script>
 (function () {
   var box = document.getElementById("rows");
@@ -54,5 +82,30 @@ i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline o
   apply();
 })();
 </script>
+{{if .Tree}}<script>
+// Remember whether the tree is shown.
+document.getElementById("tt").onchange = function () {
+  try { localStorage.setItem("tree", this.checked ? "1" : "0"); } catch (e) {}
+};
+// Expand or collapse a folder; children that aren't in the page are fetched.
+document.getElementById("tree").onclick = function (e) {
+  var b = e.target.closest("button");
+  if (!b) return;
+  var li = b.parentNode, ul = li.querySelector("ul");
+  if (ul || li.classList.contains("open")) return li.classList.toggle("open");
+  var a = li.querySelector("a");
+  fetch(a.href + "?tree=1").then(function (r) { return r.text(); }).then(function (html) {
+    var d = document.createElement("div");
+    d.innerHTML = html;
+    ul = d.firstChild;
+    if (!ul || !ul.children.length) return b.replaceWith(Object.assign(document.createElement("span"), {className: "sp"}));
+    [].forEach.call(ul.querySelectorAll("a"), function (x) { x.href = new URL(x.getAttribute("href"), a.href).href; });
+    li.appendChild(ul);
+    li.classList.add("open");
+  });
+};
+</script>{{end}}
 </body>
 </html>
+{{define "node"}}<li{{if or .Open .Cur}} class="{{if .Open}}open{{end}}{{if .Cur}} cur{{end}}"{{end}}>{{if or .Kids .Lazy}}<button type="button" aria-label="Toggle"></button>{{else}}<span class="sp"></span>{{end}}<a href="{{.Href}}">{{.Name}}</a>{{if .Kids}}<ul>{{range .Kids}}{{template "node" .}}{{end}}</ul>{{end}}</li>{{end}}
+{{define "list"}}<ul>{{range .}}{{template "node" .}}{{end}}</ul>{{end}}

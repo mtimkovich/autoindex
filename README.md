@@ -22,6 +22,7 @@ Then open http://localhost:8080/.
 | `-root` | `.`     | Directory to serve                 |
 | `-addr` | `8080`  | Port to listen on                  |
 | `-all`  | `false` | Show dotfiles (hidden by default)  |
+| `-tree` | `false` | Enable the folder tree sidebar     |
 
 ## Features
 
@@ -31,6 +32,10 @@ Then open http://localhost:8080/.
   reverse. Directories always stay on top. The choice is saved in the browser's
   `localStorage`. Without JavaScript the list is sorted by name.
 - Files are served as-is; directories redirect to a trailing `/`.
+- **Directory tree** (`-tree`): a "Folders" button shows or hides a sidebar on the left (the
+  choice is remembered), expanded down to the current directory with the
+  current one in bold. Other folders load when you click their arrow. On
+  narrow screens it appears above the listing.
 
 ## Security
 
@@ -42,6 +47,7 @@ Then open http://localhost:8080/.
 ## Files
 
 - `main.go`: server and listing logic
+- `tree.go`: sidebar tree building
 - `index.html`: page template (with the small sorting script), embedded into
   the binary at build time, so the compiled binary is self-contained
 
