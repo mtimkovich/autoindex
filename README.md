@@ -55,3 +55,13 @@ Then open http://localhost:8080/.
 
 All links are relative, so it works under a path prefix (e.g. `/files/`) as
 long as the proxy strips the prefix before forwarding.
+
+## Docker
+
+```
+docker build -t autoindex .
+docker run --rm -p 8080:8080 -v /path/to/files:/data:ro autoindex
+```
+
+The image serves `/data` on port 8080. Extra flags go after the image name,
+e.g. `docker run ... autoindex -tree`.
