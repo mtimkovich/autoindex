@@ -4,11 +4,11 @@
 pre{overflow-x:auto}
 a{color:#666;text-decoration:none}
 a:hover{color:#000;text-decoration:underline}
-b a,b a:hover{color:inherit} /* headers keep the text color */
+b a,b a:hover{color:inherit} /* column headers keep the text color */
 i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline off it */
 </style></head>
 <body>
-<h1>{{.Title}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
+<h1>Index of {{range .Crumbs}}<a href="{{.Href}}">{{.Name}}</a>{{.Sep}}{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
 
 {{if .Parent}}<a href="../">../</a>
 {{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}

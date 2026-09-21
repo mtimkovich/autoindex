@@ -114,6 +114,16 @@ type row struct {
 	Bytes                  int64
 }
 
+type crumb struct{ Name, Sep, Href string } // Sep is the plain-text "/" after the link
+
+// up returns the relative link n directories above the current one.
+func up(n int) string {
+	if n == 0 {
+		return "./"
+	}
+	return strings.Repeat("../", n)
+}
+
 func pad(s string, w int) string { return strings.Repeat(" ", w-utf8.RuneCountInString(s)) }
 
 func listing(w http.ResponseWriter, p, full string, entries []os.DirEntry) {
@@ -171,8 +181,18 @@ func listing(w http.ResponseWriter, p, full string, entries []os.DirEntry) {
 	if p != "/" {
 		title += "/"
 	}
+	// Breadcrumbs for the heading: "/", then one link per path segment.
+	segs := []string{}
+	if p != "/" {
+		segs = strings.Split(strings.Trim(p, "/"), "/")
+	}
+	crumbs := []crumb{{"/", "", up(len(segs))}}
+	for i, seg := range segs {
+		crumbs = append(crumbs, crumb{seg, "/", up(len(segs) - 1 - i)})
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := tmpl.Execute(w, map[string]any{"Title": title, "Parent": p != "/", "Rows": rows,
+	err := tmpl.Execute(w, map[string]any{"Title": title, "Crumbs": crumbs, "Parent": p != "/", "Rows": rows,
 		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW)})
 	if err != nil {
 		log.Print(err)
