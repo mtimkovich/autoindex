@@ -7,9 +7,8 @@ a:hover{color:#000;text-decoration:underline}
 b a,b a:hover{color:inherit} /* column headers keep the text color */
 i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline off it */
 #tt{display:none}
-.tt{display:inline-block;margin:.3em 0;padding:.1em .6em;border:1px solid #ccc;border-radius:4px;color:#666;font:13px monospace;cursor:pointer;user-select:none}
-.tt:hover{color:#000;border-color:#999}
-#tt:checked+.tt{background:#eee}
+.tt{margin-right:.4em;color:#666;cursor:pointer;user-select:none}
+.tt:hover,#tt:checked~.wrap .tt{color:#000}
 .wrap{display:flex;gap:1em}
 main{flex:1;min-width:0}
 nav{display:none;font:13px monospace;position:sticky;top:0;align-self:flex-start;max-height:100vh;overflow:auto;min-width:12em;max-width:22em;padding:.5em 1em .5em 0;border-right:1px solid #ddd}
@@ -32,12 +31,12 @@ nav{position:static;max-height:50vh;max-width:none;border:0;border-bottom:1px so
 }
 </style></head>
 <body>
-{{if .Tree}}<input type="checkbox" id="tt"><label for="tt" class="tt" title="Show or hide the folder tree">&#9776; Folders</label>
+{{if .Tree}}<input type="checkbox" id="tt">
 <script>try { document.getElementById("tt").checked = localStorage.getItem("tree") === "1"; } catch (e) {}</script>
 <div class="wrap">
 <nav id="tree"><ul>{{template "node" .Tree}}</ul></nav>
 <main>{{end}}
-<h1>Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
+<h1>{{if .Tree}}<label for="tt" class="tt" title="Show or hide the folder tree">&#9776;</label>{{end}}Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
 
 {{if .Parent}}<a href="../">../</a>
 {{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
