@@ -49,8 +49,9 @@ Then open http://localhost:8080/.
 
 - `main.go`: server and listing logic
 - `tree.go`: sidebar tree building
-- `index.html`: page template (with the small sorting script), embedded into
-  the binary at build time, so the compiled binary is self-contained
+- `web/`: the frontend (`index.html`, `style.css`, `script.js`), embedded into
+  the binary at build time (CSS/JS served at `/_autoindex/style.css` and
+  `/_autoindex/script.js`), so the compiled binary is self-contained
 
 ## Behind a reverse proxy
 

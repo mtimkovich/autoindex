@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -19,10 +20,21 @@ import (
 	"unicode/utf8"
 )
 
-//go:embed index.html
+//go:embed web/index.html
 var indexHTML string
 
+//go:embed web/style.css
+var styleCSS string
+
+//go:embed web/script.js
+var scriptJS string
+
 var tmpl = template.Must(template.New("index").Parse(indexHTML))
+
+// Path the page's CSS and JS are served from. Handled before any user files,
+// so it can't collide with something in -root; a real file at this exact
+// path would just be shadowed.
+const assetPath = "/_autoindex/"
 
 const maxName = 50 // nginx truncates displayed names at 50 columns
 
@@ -46,6 +58,24 @@ func main() {
 	*root = abs
 	log.Printf("serving %s at http://localhost:%d/", abs, *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), http.HandlerFunc(serve)))
+}
+
+// serveAsset serves the page's embedded CSS and JS. name is the request path
+// with assetPath already stripped.
+func serveAsset(w http.ResponseWriter, name string) {
+	var body, ctype string
+	switch name {
+	case "style.css":
+		body, ctype = styleCSS, "text/css; charset=utf-8"
+	case "script.js":
+		body, ctype = scriptJS, "text/javascript; charset=utf-8"
+	default:
+		http.NotFound(w, nil)
+		return
+	}
+	w.Header().Set("Content-Type", ctype)
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	io.WriteString(w, body)
 }
 
 func hidden(p string) bool {
@@ -74,6 +104,10 @@ func resolve(p string) (string, bool) {
 }
 
 func serve(w http.ResponseWriter, r *http.Request) {
+	if asset, ok := strings.CutPrefix(r.URL.Path, assetPath); ok {
+		serveAsset(w, asset)
+		return
+	}
 	// Clean against a rooted path so ".." can never climb above root.
 	p := path.Clean("/" + r.URL.Path)
 	if hidden(p) {
@@ -196,7 +230,8 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	if p != "/" {
 		segs = strings.Split(strings.Trim(p, "/"), "/")
 	}
-	crumbs := []crumb{{"", host, up(len(segs))}}
+	base := up(len(segs)) // relative path back to the root, for the CSS/JS links
+	crumbs := []crumb{{"", host, base}}
 	trail := host
 	for i, seg := range segs {
 		crumbs = append(crumbs, crumb{" > ", seg, up(len(segs) - 1 - i)})
@@ -208,7 +243,7 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 		title = segs[len(segs)-1] + " - " + trail
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	data := map[string]any{"Title": title, "Crumbs": crumbs, "Parent": p != "/", "Rows": rows,
+	data := map[string]any{"Title": title, "Crumbs": crumbs, "Parent": p != "/", "Rows": rows, "Base": base,
 		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW)}
 	if *tree {
 		data["Tree"] = treeRoot(host, segs)

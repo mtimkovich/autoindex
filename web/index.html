@@ -1,0 +1,21 @@
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M1 3h5l2 2h7v8H1z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{.Base}}_autoindex/style.css"></head>
+<body>
+{{if .Tree}}<input type="checkbox" id="tt">
+<script>try { document.getElementById("tt").checked = localStorage.getItem("tree") === "1"; } catch (e) {}</script>
+<div class="wrap">
+<nav id="tree"><ul>{{template "node" .Tree}}</ul></nav>
+<main>{{end}}
+<h1>{{if .Tree}}<label for="tt" class="tt" title="Show or hide the folder tree">&#9776;</label>{{end}}Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
+
+{{if .Parent}}<a href="../">../</a>
+{{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
+</span>{{end}}</span></pre><hr>
+{{if .Tree}}</main></div>{{end}}
+<script src="{{.Base}}_autoindex/script.js"></script>
+</body>
+</html>
+{{define "node"}}<li{{if or .Open .Cur}} class="{{if .Open}}open{{end}}{{if .Cur}} cur{{end}}"{{end}}>{{if or .Kids .Lazy}}<button type="button" aria-label="Toggle"></button>{{else}}<span class="sp"></span>{{end}}<a href="{{.Href}}">{{.Name}}</a>{{if .Kids}}<ul>{{range .Kids}}{{template "node" .}}{{end}}</ul>{{end}}</li>{{end}}
+{{define "list"}}<ul>{{range .}}{{template "node" .}}{{end}}</ul>{{end}}
