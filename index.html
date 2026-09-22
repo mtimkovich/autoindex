@@ -91,7 +91,14 @@ document.getElementById("tt").onchange = function () {
 var tree = document.getElementById("tree");
 function load(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch (e) { return def; } }
 function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-var opened = load("treeOpen", []); // paths of folders the user expanded
+var opened = load("treeOpen", []); // paths of folders that stay expanded
+// The folders leading to this page are open too; remember them so they stay
+// open after navigating elsewhere.
+[].forEach.call(tree.querySelectorAll("li.open"), function (li) {
+  var p = li.querySelector("a").pathname;
+  if (opened.indexOf(p) < 0) opened.push(p);
+});
+save("treeOpen", opened);
 
 // Expand a folder, fetching its children first if they aren't in the page.
 function expand(li) {
