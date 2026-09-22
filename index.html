@@ -89,8 +89,11 @@ document.getElementById("tt").onchange = function () {
   try { localStorage.setItem("tree", this.checked ? "1" : "0"); } catch (e) {}
 };
 var tree = document.getElementById("tree");
-function load(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch (e) { return def; } }
-function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+// Open folders and scroll position last only for this tab's session, and a reload resets them.
+function load(k, def) { try { return JSON.parse(sessionStorage.getItem(k)) || def; } catch (e) { return def; } }
+function save(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+var nav = performance.getEntriesByType("navigation")[0];
+if (nav && nav.type === "reload") { save("treeOpen", []); save("treeScroll", 0); }
 var opened = load("treeOpen", []); // paths of folders that stay expanded
 // The folders leading to this page are open too; remember them so they stay
 // open after navigating elsewhere.
