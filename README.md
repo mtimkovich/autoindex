@@ -65,3 +65,9 @@ docker run --rm -p 8080:8080 -v /path/to/files:/data:ro autoindex
 
 The image serves `/data` on port 8080. Extra flags go after the image name,
 e.g. `docker run ... autoindex -tree`.
+
+With Docker Compose, edit the volume path in `compose.yaml`, then:
+
+```
+docker compose up -d
+```
