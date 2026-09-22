@@ -6,5 +6,5 @@ services:
     ports:
       - "5555:8080"
     volumes:
-      - /volume1/nginx/files:/data:ro # change to the directory you want to serve
-    command: ["-tree"]        # extra flags, e.g. -tree or -all
+      - /volume1/nginx/files:/data:ro
+    command: ["-tree", "-hostname", "naxx"]

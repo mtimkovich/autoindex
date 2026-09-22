@@ -28,7 +28,7 @@ const maxName = 50 // nginx truncates displayed names at 50 columns
 
 var (
 	root = flag.String("root", ".", "directory to serve")
-	addr = flag.Int("addr", 8080, "port to listen on")
+	port = flag.Int("port", 8080, "port to listen on")
 	all  = flag.Bool("all", false, "show dotfiles")
 	tree = flag.Bool("tree", false, "enable the folder tree sidebar")
 	host = flag.String("hostname", "", "hostname to display (default: the request's Host header)")
@@ -44,8 +44,8 @@ func main() {
 		log.Fatal(err)
 	}
 	*root = abs
-	log.Printf("serving %s at http://localhost:%d/", abs, *addr)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *addr), http.HandlerFunc(serve)))
+	log.Printf("serving %s at http://localhost:%d/", abs, *port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), http.HandlerFunc(serve)))
 }
 
 func hidden(p string) bool {
