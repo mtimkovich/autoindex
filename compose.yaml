@@ -4,7 +4,7 @@ services:
     image: autoindex
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "5555:8080"
     volumes:
-      - /path/to/files:/data:ro # change to the directory you want to serve
-    # command: ["-tree"]        # extra flags, e.g. -tree or -all
+      - /volume1/nginx/files:/data:ro # change to the directory you want to serve
+    command: ["-tree"]        # extra flags, e.g. -tree or -all

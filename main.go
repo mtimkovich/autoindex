@@ -31,6 +31,7 @@ var (
 	addr = flag.Int("addr", 8080, "port to listen on")
 	all  = flag.Bool("all", false, "show dotfiles")
 	tree = flag.Bool("tree", false, "enable the folder tree sidebar")
+	host = flag.String("hostname", "", "hostname to display (default: the request's Host header)")
 )
 
 func main() {
@@ -187,7 +188,10 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	}
 
 	// Breadcrumbs for the heading: the host (root), then one link per path segment.
-	host := displayHost(req.Host)
+	host := *host
+	if host == "" {
+		host = displayHost(req.Host)
+	}
 	segs := []string{}
 	if p != "/" {
 		segs = strings.Split(strings.Trim(p, "/"), "/")

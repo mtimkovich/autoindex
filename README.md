@@ -22,6 +22,7 @@ Then open http://localhost:8080/.
 | `-root` | `.`     | Directory to serve                 |
 | `-addr` | `8080`  | Port to listen on                  |
 | `-all`  | `false` | Show dotfiles (hidden by default)  |
+| `-hostname` | (Host header) | Hostname to display instead of the request's |
 | `-tree` | `false` | Enable the folder tree sidebar     |
 
 ## Features
