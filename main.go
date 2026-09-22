@@ -254,7 +254,7 @@ func humanTime(t, now time.Time) string {
 	case d < 30*24*time.Hour:
 		return plural(int(d/(24*time.Hour)), "day")
 	}
-	return t.Format("Jan 2, 2006")
+	return t.Format("Jan _2, 2006") // "_2" space-pads the day to 2 digits
 }
 
 func plural(n int, unit string) string {
