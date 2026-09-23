@@ -8,7 +8,7 @@
 <div class="wrap">
 <nav id="tree"><ul>{{template "node" .Tree}}</ul></nav>
 <main>{{end}}
-<h1>{{if .Tree}}<label for="tt" class="tt" title="Show or hide the folder tree">&#9776;</label>{{end}}Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
+<h1>{{if .Tree}}<label for="tt" class="tt" title="Show or hide the folder tree"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2h-18v2zm0-5h18v-2h-18v2zm0-7v2h18v-2h-18z"/></svg></label>{{end}}Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i>  </i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i>  </i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i>  </i></a></b>
 
 {{if .Parent}}<a href="../">../</a>
 {{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
@@ -17,5 +17,5 @@
 <script src="{{.Base}}_autoindex/script.js"></script>
 </body>
 </html>
-{{define "node"}}<li{{if or .Open .Cur}} class="{{if .Open}}open{{end}}{{if .Cur}} cur{{end}}"{{end}}>{{if or .Kids .Lazy}}<button type="button" aria-label="Toggle"></button>{{else}}<span class="sp"></span>{{end}}<a href="{{.Href}}">{{.Name}}</a>{{if .Kids}}<ul>{{range .Kids}}{{template "node" .}}{{end}}</ul>{{end}}</li>{{end}}
+{{define "node"}}<li{{if or .Open .Cur}} class="{{if .Open}}open{{end}}{{if .Cur}} cur{{end}}"{{end}}>{{if or .Kids .Lazy}}<button type="button" aria-label="Toggle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></button>{{else}}<span class="sp"></span>{{end}}<a href="{{.Href}}">{{.Name}}</a>{{if .Kids}}<ul>{{range .Kids}}{{template "node" .}}{{end}}</ul>{{end}}</li>{{end}}
 {{define "list"}}<ul>{{range .}}{{template "node" .}}{{end}}</ul>{{end}}

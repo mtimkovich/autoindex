@@ -158,7 +158,14 @@ type row struct {
 	Bytes                  int64
 }
 
-type crumb struct{ Pre, Name, Href string } // Pre is the plain-text separator before the link
+type crumb struct {
+	Pre        template.HTML // the separator icon before the link (empty for the first crumb)
+	Name, Href string
+}
+
+// crumbSep is the separator icon between breadcrumbs. It's a fixed, trusted
+// string, never built from user input, so rendering it unescaped is safe.
+const crumbSep = template.HTML(`<svg class="sep" viewBox="0 0 24 24"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg>`)
 
 // up returns the relative link n directories above the current one.
 func up(n int) string {
@@ -234,7 +241,7 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	crumbs := []crumb{{"", host, base}}
 	trail := host
 	for i, seg := range segs {
-		crumbs = append(crumbs, crumb{" > ", seg, up(len(segs) - 1 - i)})
+		crumbs = append(crumbs, crumb{crumbSep, seg, up(len(segs) - 1 - i)})
 		trail += " > " + seg
 	}
 	// Page title: "current folder - host > folder > folder".

@@ -3,9 +3,11 @@ a{color:#666;text-decoration:none}
 a:hover{color:#000;text-decoration:underline}
 b a,b a:hover{color:inherit} /* column headers keep the text color */
 i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline off it */
+.sep{width:.6em;height:.6em;vertical-align:.05em;margin:0 .2em;fill:#999} /* breadcrumb separator */
 #tt{display:none}
 .tt{margin-right:.4em;color:#666;cursor:pointer;user-select:none}
 .tt:hover,#tt:checked~.wrap .tt{color:#000}
+.tt svg{width:1em;height:1em;vertical-align:-.15em;display:inline-block}
 .wrap{display:flex;gap:1em}
 main{flex:1;min-width:0}
 nav{display:none;font:13px monospace;position:sticky;top:0;align-self:flex-start;max-height:100vh;overflow:auto;min-width:12em;max-width:22em;padding:.5em 1em .5em 0;border-right:1px solid #ddd}
@@ -18,8 +20,8 @@ nav li{white-space:nowrap;line-height:1.7}
 nav li>ul{display:none}
 nav li.open>ul{display:block}
 nav button,nav .sp{display:inline-block;width:1.2em;padding:0;border:0;background:none;color:#666;font:inherit;text-align:center;cursor:pointer}
-nav button::before{content:"\25B8"}
-nav li.open>button::before{content:"\25BE"}
+nav button svg{width:.8em;height:.8em;vertical-align:middle;transition:transform .15s}
+nav li.open>button svg{transform:rotate(90deg)}
 nav a{padding-left:1.5em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M1 3h5l2 2h7v8H1z'/%3E%3C/svg%3E") no-repeat left center/1.1em}
 nav .cur>a{color:#000;font-weight:bold}
 @media(max-width:700px){
