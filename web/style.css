@@ -1,37 +1,201 @@
-pre{overflow-x:auto}
-h1{font-size:24px}
-a{color:#666;text-decoration:none}
-a:hover{color:#000;text-decoration:underline}
-b a,b a:hover{color:inherit} /* column headers keep the text color */
-i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline off it */
-i svg{width:1em;height:1em;margin-left:.3em;vertical-align:-.15em;opacity:0;fill:#666;transform:rotate(-90deg);transition:transform .15s}
-i.active svg{opacity:1}
-i.desc svg{transform:rotate(90deg)}
-.sep{width:.9em;height:.9em;vertical-align:-.08em;margin:0 .2em;fill:#999} /* breadcrumb separator */
-#tt{display:none}
-.tt{margin-right:.4em;color:#666;cursor:pointer;user-select:none}
-.tt:hover,#tt:checked~.wrap .tt{color:#000}
-.tt svg{width:1em;height:1em;vertical-align:-.15em;display:inline-block}
-.wrap{display:flex;gap:1em}
-main{flex:1;min-width:0}
-nav{display:none;font:13px monospace;position:sticky;top:0;align-self:flex-start;max-height:100vh;overflow:auto;min-width:12em;max-width:22em;padding:.5em 1em .5em 0;border-right:1px solid #ddd}
-#tt:checked~.wrap nav{display:block}
-nav{scrollbar-width:thin;scrollbar-color:#ddd transparent}
-nav:hover{scrollbar-color:#bbb transparent}
-nav ul{list-style:none;margin:0;padding-left:1.2em}
-nav>ul{padding-left:0}
-nav li{white-space:nowrap;line-height:1.7}
-nav li>ul{display:none}
-nav li.open>ul{display:block}
-nav button,nav .sp{display:inline-block;width:1.2em;padding:0;border:0;background:none;color:#666;font:inherit;text-align:center;cursor:pointer}
-nav button svg{width:.8em;height:.8em;vertical-align:middle;transition:transform .15s}
-nav li.open>button svg{transform:rotate(90deg)}
-nav a{padding-left:1.5em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M1 3h5l2 2h7v8H1z'/%3E%3C/svg%3E") no-repeat left center/1.1em}
-nav .cur>a{color:#000;font-weight:bold}
-@media(max-width:700px){
-.wrap{display:block}
-nav{position:static;max-height:50vh;max-width:none;border:0;border-bottom:1px solid #ddd;margin-bottom:.5em}
-pre{font-size:16px}
-pre a,nav a{display:inline-block;padding-top:.45em;padding-bottom:.45em}
-h1{font-size:1.3em}
+pre {
+  overflow-x: auto;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+a {
+  color: #666;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #000;
+  text-decoration: underline;
+}
+
+/* column headers keep the text color */
+b a,
+b a:hover {
+  color: inherit;
+}
+
+/* sort arrow: keeps hover underline off it */
+i {
+  display: inline-block;
+  font-style: normal;
+}
+
+i svg {
+  width: 1em;
+  height: 1em;
+  margin-left: .3em;
+  vertical-align: -.15em;
+  opacity: 0;
+  fill: #666;
+  transform: rotate(-90deg);
+  transition: transform .15s;
+}
+
+i.active svg {
+  opacity: 1;
+}
+
+i.desc svg {
+  transform: rotate(90deg);
+}
+
+/* breadcrumb separator */
+.sep {
+  width: .9em;
+  height: .9em;
+  vertical-align: -.08em;
+  margin: 0 .2em;
+  fill: #999;
+}
+
+#tt {
+  display: none;
+}
+
+.tt {
+  margin-right: .4em;
+  color: #666;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tt:hover,
+#tt:checked ~ .wrap .tt {
+  color: #000;
+}
+
+.tt svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: -.15em;
+  display: inline-block;
+}
+
+.wrap {
+  display: flex;
+  gap: 1em;
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+}
+
+nav {
+  display: none;
+  font: 13px monospace;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  max-height: 100vh;
+  overflow: auto;
+  min-width: 12em;
+  max-width: 22em;
+  padding: .5em 1em .5em 0;
+  border-right: 1px solid #ddd;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+}
+
+#tt:checked ~ .wrap nav {
+  display: block;
+}
+
+nav:hover {
+  scrollbar-color: #bbb transparent;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+nav > ul {
+  padding-left: 0;
+}
+
+nav li {
+  white-space: nowrap;
+  line-height: 1.7;
+}
+
+nav li > ul {
+  display: none;
+}
+
+nav li.open > ul {
+  display: block;
+}
+
+nav button,
+nav .sp {
+  display: inline-block;
+  width: 1.2em;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #666;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+nav button svg {
+  width: .8em;
+  height: .8em;
+  vertical-align: middle;
+  transition: transform .15s;
+}
+
+nav li.open > button svg {
+  transform: rotate(90deg);
+}
+
+nav a {
+  padding-left: 1.5em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M1 3h5l2 2h7v8H1z'/%3E%3C/svg%3E") no-repeat left center / 1.1em;
+}
+
+nav .cur > a {
+  color: #000;
+  font-weight: bold;
+}
+
+@media (max-width: 700px) {
+  .wrap {
+    display: block;
+  }
+
+  nav {
+    position: static;
+    max-height: 50vh;
+    max-width: none;
+    border: 0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: .5em;
+  }
+
+  pre {
+    font-size: 16px;
+  }
+
+  pre a,
+  nav a {
+    display: inline-block;
+    padding-top: .45em;
+    padding-bottom: .45em;
+  }
+
+  h1 {
+    font-size: 1.3em;
+  }
 }
