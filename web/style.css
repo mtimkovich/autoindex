@@ -1,4 +1,5 @@
 pre{overflow-x:auto}
+h1{font-size:16px}
 a{color:#666;text-decoration:none}
 a:hover{color:#000;text-decoration:underline}
 b a,b a:hover{color:inherit} /* column headers keep the text color */
