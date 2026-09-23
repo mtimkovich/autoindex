@@ -44,9 +44,19 @@
 // Folder tree: only present when the -tree flag is on.
 const tree = document.getElementById("tree");
 if (tree) {
-  // Remember whether the tree is shown.
-  document.getElementById("tt").onchange = function () {
-    try { localStorage.setItem("tree", this.checked ? "1" : "0"); } catch (e) {}
+  // The server adds ?open=... to tree links so a previously-visited branch
+  // stays expanded without JavaScript. This page has JS, so that's handled
+  // below via sessionStorage instead - drop it to keep the address bar clean.
+  if (location.search) history.replaceState(null, "", location.pathname);
+
+  // The toggle is a real link (to "?show=..."), so the sidebar's shown/hidden
+  // state still survives a click without JavaScript. With JS, keep that
+  // instant and reload-free: flip the checkbox ourselves and remember it.
+  const tt = document.getElementById("tt");
+  document.getElementById("tt-toggle").onclick = function (e) {
+    e.preventDefault();
+    tt.checked = !tt.checked;
+    try { localStorage.setItem("tree", tt.checked ? "1" : "0"); } catch (e) {}
   };
   // Open folders and scroll position last only for this tab's session, and a reload resets them.
   const load = function (k, def) { try { return JSON.parse(sessionStorage.getItem(k)) || def; } catch (e) { return def; } };

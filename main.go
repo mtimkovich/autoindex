@@ -140,7 +140,7 @@ func serve(w http.ResponseWriter, r *http.Request) {
 	}
 	if *tree && r.URL.Query().Get("tree") == "1" {
 		// Sub-folders of this directory, for the sidebar to load on demand.
-		if err := tmpl.ExecuteTemplate(w, "list", treeKids(full, "", "./", 0, nil)); err != nil {
+		if err := tmpl.ExecuteTemplate(w, "list", treeKids(full, "", "./", 0, nil, "")); err != nil {
 			log.Print(err)
 		}
 		return
@@ -179,6 +179,30 @@ func pad(s string, w int) string { return strings.Repeat(" ", w-utf8.RuneCountIn
 
 func listing(w http.ResponseWriter, req *http.Request, p, full string, entries []os.DirEntry) {
 	now := time.Now()
+
+	// The directory being viewed, split into segments: used for breadcrumbs,
+	// the tree's auto-expanded ancestors, and the title.
+	segs := []string{}
+	if p != "/" {
+		segs = strings.Split(strings.Trim(p, "/"), "/")
+	}
+	base := up(len(segs)) // relative path back to the root, for the CSS/JS links
+
+	// Whether the sidebar itself is shown, carried forward as a query string
+	// on every link on the page so it survives a click without JavaScript
+	// (which otherwise remembers this in localStorage - see script.js).
+	var navQuery, toggleHref string
+	treeShown := false
+	if *tree {
+		treeShown = req.URL.Query().Get("show") == "1"
+		navQuery = encodeShown(treeShown)
+		toggleHref = "?" + encodeShown(!treeShown)
+	}
+	suffix := ""
+	if navQuery != "" {
+		suffix = "?" + navQuery
+	}
+
 	var rows []row
 	for _, e := range entries {
 		if hidden(e.Name()) {
@@ -196,14 +220,15 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 			Bytes: fi.Size(), Date: humanTime(fi.ModTime(), now), Size: "-",
 			Full: fi.ModTime().Format("2006-01-02 15:04:05 MST")}
 		u := url.URL{Path: "./" + e.Name()}
-		rw.Href = u.String()
 		if fi.IsDir() {
 			rw.Dir, rw.Bytes = 1, 0
 			rw.Name += "/"
-			rw.Href += "/"
+			u.Path += "/"
+			u.RawQuery = navQuery
 		} else {
 			rw.Size = humanSize(fi.Size())
 		}
+		rw.Href = u.String()
 		rows = append(rows, rw)
 	}
 	// Initial order (also the no-JS order); the page script re-sorts on demand.
@@ -233,15 +258,10 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	if host == "" {
 		host = displayHost(req.Host)
 	}
-	segs := []string{}
-	if p != "/" {
-		segs = strings.Split(strings.Trim(p, "/"), "/")
-	}
-	base := up(len(segs)) // relative path back to the root, for the CSS/JS links
-	crumbs := []crumb{{"", host, base}}
+	crumbs := []crumb{{"", host, base + suffix}}
 	trail := host
 	for i, seg := range segs {
-		crumbs = append(crumbs, crumb{crumbSep, seg, up(len(segs) - 1 - i)})
+		crumbs = append(crumbs, crumb{crumbSep, seg, up(len(segs)-1-i) + suffix})
 		trail += " > " + seg
 	}
 	// Page title: "current folder - host > folder > folder".
@@ -249,11 +269,17 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	if len(segs) > 0 {
 		title = segs[len(segs)-1] + " - " + trail
 	}
+	parentHref := ""
+	if p != "/" {
+		parentHref = "../" + suffix
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	data := map[string]any{"Title": title, "Crumbs": crumbs, "Parent": p != "/", "Rows": rows, "Base": base,
+	data := map[string]any{"Title": title, "Crumbs": crumbs, "ParentHref": parentHref, "Rows": rows, "Base": base,
 		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW)}
 	if *tree {
-		data["Tree"] = treeRoot(host, segs)
+		data["Tree"] = treeRoot(host, segs, navQuery)
+		data["TreeShown"] = treeShown
+		data["ToggleHref"] = toggleHref
 	}
 	err := tmpl.Execute(w, data)
 	if err != nil {

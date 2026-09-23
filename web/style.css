@@ -72,6 +72,10 @@ i.desc svg {
   color: #000;
 }
 
+.tt:hover {
+  text-decoration: none;
+}
+
 .tt svg {
   width: 1em;
   height: 1em;

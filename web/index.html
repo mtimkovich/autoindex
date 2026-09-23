@@ -7,7 +7,7 @@
 </head>
 <body>
 {{if .Tree}}
-  <input type="checkbox" id="tt">
+  <input type="checkbox" id="tt"{{if .TreeShown}} checked{{end}}>
   <script>try { document.getElementById("tt").checked = localStorage.getItem("tree") === "1"; } catch (e) {}</script>
   <div class="wrap">
     <nav id="tree"><ul>{{template "node" .Tree}}</ul></nav>
@@ -19,9 +19,9 @@
   under the header row, one row per line. Don't reindent or wrap it -
   that would show up as visible misalignment in the rendered listing.
 -->
-<h1>{{if .Tree}}<label for="tt" class="tt" title="Show or hide the folder tree"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2h-18v2zm0-5h18v-2h-18v2zm0-7v2h18v-2h-18z"/></svg></label>{{end}}Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a></b>
+<h1>{{if .Tree}}<a href="{{.ToggleHref}}" id="tt-toggle" class="tt" title="Show or hide the folder tree"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2h-18v2zm0-5h18v-2h-18v2zm0-7v2h18v-2h-18z"/></svg></a>{{end}}Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a></b>
 
-{{if .Parent}}<a href="../">../</a>
+{{if .ParentHref}}<a href="{{.ParentHref}}">../</a>
 {{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
 </span>{{end}}</span></pre><hr>
 {{if .Tree}}
