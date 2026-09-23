@@ -22,7 +22,10 @@
   function apply() {
     rows.sort(cmp).forEach(function (r) { box.appendChild(r); });
     heads.forEach(function (h) {
-      h.lastChild.textContent = h.dataset.k === sort.k ? (sort.o === 1 ? " ▲" : " ▼") : "  ";
+      const icon = h.lastChild; // the <i>, holding the arrow icon
+      const active = h.dataset.k === sort.k;
+      icon.classList.toggle("active", active);
+      icon.classList.toggle("desc", active && sort.o !== 1);
     });
   }
 

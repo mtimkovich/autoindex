@@ -4,6 +4,9 @@ a{color:#666;text-decoration:none}
 a:hover{color:#000;text-decoration:underline}
 b a,b a:hover{color:inherit} /* column headers keep the text color */
 i{display:inline-block;font-style:normal} /* sort arrow: keeps hover underline off it */
+i svg{width:1em;height:1em;margin-left:.3em;vertical-align:-.15em;opacity:0;fill:#666;transform:rotate(-90deg);transition:transform .15s}
+i.active svg{opacity:1}
+i.desc svg{transform:rotate(90deg)}
 .sep{width:.9em;height:.9em;vertical-align:-.08em;margin:0 .2em;fill:#999} /* breadcrumb separator */
 #tt{display:none}
 .tt{margin-right:.4em;color:#666;cursor:pointer;user-select:none}
