@@ -4,11 +4,15 @@ A small directory-listing server in Go, styled after nginx's `autoindex` but
 friendlier: human-readable sizes and times, sortable columns, and mobile-friendly.
 No dependencies and no external JavaScript.
 
+![Screenshot of autoindex, showing the folder tree sidebar and a file listing](screenshot.png)
+
+(Screenshot shows a made-up directory tree for demonstration.)
+
 ## Build and run
 
 ```
 go build -o autoindex .
-./autoindex -root /path/to/files -addr 8080
+./autoindex -root /path/to/files -port 8080
 ```
 
 Or without building: `go run . -root /path/to/files`.
@@ -20,7 +24,7 @@ Then open http://localhost:8080/.
 | Flag    | Default | Description                        |
 |---------|---------|------------------------------------|
 | `-root` | `.`     | Directory to serve                 |
-| `-addr` | `8080`  | Port to listen on                  |
+| `-port` | `8080`  | Port to listen on                  |
 | `-all`  | `false` | Show dotfiles (hidden by default)  |
 | `-hostname` | (Host header) | Hostname to display instead of the request's |
 | `-tree` | `false` | Enable the folder tree sidebar     |

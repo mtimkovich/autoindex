@@ -44,9 +44,9 @@
 // Folder tree: only present when the -tree flag is on.
 const tree = document.getElementById("tree");
 if (tree) {
-  // The server adds ?open=... to tree links so a previously-visited branch
-  // stays expanded without JavaScript. This page has JS, so that's handled
-  // below via sessionStorage instead - drop it to keep the address bar clean.
+  // The server adds ?show=1 to links so the sidebar stays shown without
+  // JavaScript. This page has JS, so that's handled below via localStorage
+  // instead - drop it to keep the address bar clean.
   if (location.search) history.replaceState(null, "", location.pathname);
 
   // The toggle is a real link (to "?show=..."), so the sidebar's shown/hidden
@@ -77,7 +77,9 @@ if (tree) {
     const b = li.querySelector("button");
     if (li.querySelector("ul") || !b) { li.classList.add("open"); return Promise.resolve(); }
     const a = li.querySelector("a");
-    return fetch(a.href + "?tree=1").then(function (r) { return r.text(); }).then(function (html) {
+    const u = new URL(a.href);
+    u.searchParams.set("tree", "1");
+    return fetch(u).then(function (r) { return r.text(); }).then(function (html) {
       const d = document.createElement("div");
       d.innerHTML = html;
       const ul = d.firstChild;
