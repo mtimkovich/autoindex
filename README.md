@@ -1,12 +1,15 @@
 # autoindex
 
-A small directory-listing server in Go, styled after nginx's `autoindex` but
-friendlier: human-readable sizes and times, sortable columns, and mobile-friendly.
+A small file listing server in Go, styled after nginx's `autoindex` but
+with some improvements:
+- Human-readable sizes and times
+- Sortable columns
+- Mobile-friendly
+- Directory tree listing (styled after [h5ai](https://github.com/lrsjng/h5ai))
+
 No dependencies and no external JavaScript.
 
 ![Screenshot of autoindex, showing the folder tree sidebar and a file listing](screenshot.png)
-
-(Screenshot shows a made-up directory tree for demonstration.)
 
 ## Build and run
 
@@ -28,39 +31,6 @@ Then open http://localhost:8080/.
 | `-all`  | `false` | Show dotfiles (hidden by default)  |
 | `-hostname` | (Host header) | Hostname to display instead of the request's |
 | `-tree` | `false` | Enable the folder tree sidebar     |
-
-## Features
-
-- **Sizes** like `684 KB` or `1.9 MB`; **times** like `3 hours ago`, or
-  `Jan 2, 2026` for anything older than 30 days. Hover a date for the exact time.
-- **Click a column header** (Name, Modified, Size) to sort; click again to
-  reverse. Directories always stay on top. The choice is saved in the browser's
-  `localStorage`. Without JavaScript the list is sorted by name.
-- Files are served as-is; directories redirect to a trailing `/`.
-- **Directory tree** (`-tree`): a "Folders" button shows or hides a sidebar on the left (the
-  choice is remembered), expanded down to the current directory with the
-  current one in bold. Other folders load when you click their arrow. On
-  narrow screens it appears above the listing.
-
-## Security
-
-- Paths are cleaned so `..` cannot climb above the root.
-- Symlinks are followed, but any link that resolves outside the root is
-  hidden from listings and returns 404.
-- Dotfiles and dot-directories are hidden and return 404 unless `-all` is set.
-
-## Files
-
-- `main.go`: server and listing logic
-- `tree.go`: sidebar tree building
-- `web/`: the frontend (`index.html`, `style.css`, `script.js`), embedded into
-  the binary at build time (CSS/JS served at `/_autoindex/style.css` and
-  `/_autoindex/script.js`), so the compiled binary is self-contained
-
-## Behind a reverse proxy
-
-All links are relative, so it works under a path prefix (e.g. `/files/`) as
-long as the proxy strips the prefix before forwarding.
 
 ## Docker
 
