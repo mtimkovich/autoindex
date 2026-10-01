@@ -1,5 +1,16 @@
 pre {
   overflow-x: auto;
+  line-height: 1.6;
+}
+
+/* The blank line under the header row (see index.html's comment on the
+   <pre> block): a plain blank line would inherit pre's 1.6 line-height
+   too, making the gap as tall as a full icon row. display:block takes
+   this out of pre's inline flow so an empty line box isn't generated at
+   pre's line-height; height then sets the gap's size directly. */
+.gap {
+  display: block;
+  height: .6em;
 }
 
 h1 {
@@ -54,6 +65,66 @@ i.desc svg {
   vertical-align: -.08em;
   margin: 0 .2em;
   fill: #999;
+}
+
+/* Folder/file icons, one per mime-type-ish category (main.go: iconKind).
+   All from the old GNOME 2 desktop icon theme, https://www.gnome.org -
+   GPL-2.0-or-later, NOT the MIT license this project's own code is under
+   (see LICENSE). */
+.ico {
+  padding-left: 1.7em;
+  background-repeat: no-repeat;
+  background-position: 0 center;
+  background-size: 1.2em 1.2em;
+  background-image: var(--icon);
+}
+
+/* -icons defaults to off: body.no-icons strips the icon rather than
+   gating every "ico ico-X" class in the templates, since those classes
+   are shared with the tree's AJAX fragment response, which has no page
+   data (and so no flag) to check against. */
+.no-icons .ico {
+  padding-left: 0;
+  background-image: none;
+}
+
+/* Dotfiles shown under -all: a translucent white veil over the icon
+   (rather than opacity on the whole .ico element) so only the icon fades,
+   not the filename text next to it. */
+.ico-dim {
+  background-image: linear-gradient(rgba(255, 255, 255, .55), rgba(255, 255, 255, .55)), var(--icon);
+}
+
+.ico-folder {
+  --icon: url("icons/folder.png");
+}
+
+.ico-text {
+  --icon: url("icons/text.png");
+}
+
+.ico-image {
+  --icon: url("icons/image.png");
+}
+
+.ico-audio {
+  --icon: url("icons/audio.png");
+}
+
+.ico-video {
+  --icon: url("icons/video.png");
+}
+
+.ico-archive {
+  --icon: url("icons/archive.png");
+}
+
+.ico-pdf {
+  --icon: url("icons/pdf.png");
+}
+
+.ico-code {
+  --icon: url("icons/code.png");
 }
 
 #tt {
@@ -162,11 +233,6 @@ nav button svg {
 
 nav li.open > button svg {
   transform: rotate(90deg);
-}
-
-nav a {
-  padding-left: 1.5em;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M1 3h5l2 2h7v8H1z'/%3E%3C/svg%3E") no-repeat left center / 1.1em;
 }
 
 nav .cur > a {

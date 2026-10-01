@@ -2,7 +2,7 @@
 package main
 
 import (
-	_ "embed"
+	"embed"
 	"flag"
 	"fmt"
 	"html/template"
@@ -29,6 +29,9 @@ var styleCSS string
 //go:embed web/script.js
 var scriptJS string
 
+//go:embed web/icons
+var iconsFS embed.FS
+
 var tmpl = template.Must(template.New("index").Parse(indexHTML))
 
 // Path the page's CSS and JS are served from. Handled before any user files,
@@ -39,11 +42,12 @@ const assetPath = "/_autoindex/"
 const maxName = 50 // nginx truncates displayed names at 50 columns
 
 var (
-	root = flag.String("root", ".", "directory to serve")
-	port = flag.Int("port", 8080, "port to listen on")
-	all  = flag.Bool("all", false, "show dotfiles")
-	tree = flag.Bool("tree", false, "enable the folder tree sidebar")
-	host = flag.String("hostname", "", "hostname to display (default: the request's Host header)")
+	root  = flag.String("root", ".", "directory to serve")
+	port  = flag.Int("port", 8080, "port to listen on")
+	all   = flag.Bool("all", false, "show dotfiles")
+	tree  = flag.Bool("tree", false, "enable the folder tree sidebar")
+	icons = flag.Bool("icons", false, "show file-type icons in the listing")
+	host  = flag.String("hostname", "", "hostname to display (default: the request's Host header)")
 )
 
 func main() {
@@ -63,6 +67,17 @@ func main() {
 // serveAsset serves the page's embedded CSS and JS. name is the request path
 // with assetPath already stripped.
 func serveAsset(w http.ResponseWriter, name string) {
+	if iconName, ok := strings.CutPrefix(name, "icons/"); ok {
+		data, err := iconsFS.ReadFile("web/icons/" + iconName)
+		if err != nil {
+			http.NotFound(w, nil)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		w.Write(data)
+		return
+	}
 	var body, ctype string
 	switch name {
 	case "style.css":
@@ -154,8 +169,44 @@ type row struct {
 	NamePad, DatePad       string
 	SizePad                string
 	Key                    string // lowercase name, for client-side sorting
+	Icon                   string // ico-<Icon> class: folder, or by extension
+	Hidden                 bool   // dotfile, only ever true alongside -all
 	Dir, Unix              int64
 	Bytes                  int64
+}
+
+// iconKind maps a lowercase file extension to one of the icon classes
+// defined in style.css. Anything not listed gets "text" (a generic page).
+var iconKind = map[string]string{
+	".txt": "text", ".md": "text", ".log": "text", ".ini": "text", ".cfg": "text",
+	".conf": "text", ".yaml": "text", ".yml": "text", ".toml": "text", ".csv": "text",
+	".rtf": "text", ".doc": "text", ".docx": "text",
+
+	".jpg": "image", ".jpeg": "image", ".png": "image", ".gif": "image", ".bmp": "image",
+	".svg": "image", ".webp": "image", ".ico": "image", ".tiff": "image", ".heic": "image",
+
+	".mp3": "audio", ".wav": "audio", ".flac": "audio", ".ogg": "audio", ".m4a": "audio",
+	".aac": "audio", ".wma": "audio",
+
+	".mp4": "video", ".mkv": "video", ".avi": "video", ".mov": "video", ".webm": "video",
+	".wmv": "video", ".flv": "video", ".m4v": "video",
+
+	".zip": "archive", ".tar": "archive", ".gz": "archive", ".tgz": "archive",
+	".bz2": "archive", ".xz": "archive", ".rar": "archive", ".7z": "archive", ".iso": "archive",
+
+	".pdf": "pdf",
+
+	".go": "code", ".js": "code", ".ts": "code", ".py": "code", ".java": "code",
+	".c": "code", ".h": "code", ".cpp": "code", ".rs": "code", ".rb": "code",
+	".php": "code", ".sh": "code", ".html": "code", ".htm": "code", ".css": "code",
+	".json": "code", ".xml": "code", ".sql": "code", ".swift": "code", ".kt": "code",
+}
+
+func iconOf(name string) string {
+	if k, ok := iconKind[strings.ToLower(filepath.Ext(name))]; ok {
+		return k
+	}
+	return "text"
 }
 
 type crumb struct {
@@ -218,15 +269,20 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 		}
 		rw := row{Name: e.Name(), Key: strings.ToLower(e.Name()), Unix: fi.ModTime().Unix(),
 			Bytes: fi.Size(), Date: humanTime(fi.ModTime(), now), Size: "-",
-			Full: fi.ModTime().Format("2006-01-02 15:04:05 MST")}
+			Full:   fi.ModTime().Format("2006-01-02 15:04:05 MST"),
+			Hidden: strings.HasPrefix(e.Name(), ".")}
 		u := url.URL{Path: "./" + e.Name()}
 		if fi.IsDir() {
 			rw.Dir, rw.Bytes = 1, 0
-			rw.Name += "/"
+			rw.Icon = "folder"
+			if !*icons {
+				rw.Name += "/" // the icon implies it otherwise
+			}
 			u.Path += "/"
 			u.RawQuery = navQuery
 		} else {
 			rw.Size = humanSize(fi.Size())
+			rw.Icon = iconOf(e.Name())
 		}
 		rw.Href = u.String()
 		rows = append(rows, rw)
@@ -275,7 +331,8 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	data := map[string]any{"Title": title, "Crumbs": crumbs, "ParentHref": parentHref, "Rows": rows, "Base": base,
-		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW)}
+		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW),
+		"Icons": *icons}
 	if *tree {
 		data["Tree"] = treeRoot(host, segs, navQuery)
 		data["TreeShown"] = treeShown

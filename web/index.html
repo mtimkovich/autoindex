@@ -2,10 +2,10 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}}</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M1 3h5l2 2h7v8H1z'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" href="{{.Base}}_autoindex/icons/folder.png">
   <link rel="stylesheet" href="{{.Base}}_autoindex/style.css">
 </head>
-<body>
+<body{{if not .Icons}} class="no-icons"{{end}}>
 {{if .Tree}}
   <input type="checkbox" id="tt"{{if .TreeShown}} checked{{end}}>
   <script>try { document.getElementById("tt").checked = localStorage.getItem("tree") === "1"; } catch (e) {}</script>
@@ -20,9 +20,8 @@
   that would show up as visible misalignment in the rendered listing.
 -->
 <h1>{{if .Tree}}<a href="{{.ToggleHref}}" id="tt-toggle" class="tt" title="Show or hide the folder tree"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2h-18v2zm0-5h18v-2h-18v2zm0-7v2h18v-2h-18z"/></svg></a>{{end}}Index of {{range .Crumbs}}{{.Pre}}<a href="{{.Href}}">{{.Name}}</a>{{end}}</h1><hr><pre><b><a href="#" data-k="name">Name<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a>{{.NamePad}}  <a href="#" data-k="date">Modified<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a>{{.DatePad}}  {{.SizePad}}<a href="#" data-k="size">Size<i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></i></a></b>
-
-{{if .ParentHref}}<a href="{{.ParentHref}}">../</a>
-{{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
+<span class="gap"></span>{{if .ParentHref}}<a href="{{.ParentHref}}" class="ico ico-folder">{{if .Icons}}..{{else}}../{{end}}</a>
+{{end}}<span id="rows">{{range .Rows}}<span data-d="{{.Dir}}" data-t="{{.Unix}}" data-n="{{.Bytes}}" data-s="{{.Key}}"><a href="{{.Href}}" class="ico ico-{{.Icon}}{{if .Hidden}} ico-dim{{end}}">{{.Name}}</a>{{.NamePad}}  <span title="{{.Full}}">{{.Date}}</span>{{.DatePad}}  {{.SizePad}}{{.Size}}
 </span>{{end}}</span></pre><hr>
 {{if .Tree}}
     </main>
@@ -37,5 +36,5 @@
   space between them by design; any whitespace between the tags here would
   show up as a visible gap in the sidebar. Keep each on one line.
 */}}
-{{define "node"}}<li{{if or .Open .Cur}} class="{{if .Open}}open{{end}}{{if .Cur}} cur{{end}}"{{end}}>{{if or .Kids .Lazy}}<button type="button" aria-label="Toggle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></button>{{else}}<span class="sp"></span>{{end}}<a href="{{.Href}}">{{.Name}}</a>{{if .Kids}}<ul>{{range .Kids}}{{template "node" .}}{{end}}</ul>{{end}}</li>{{end}}
+{{define "node"}}<li{{if or .Open .Cur}} class="{{if .Open}}open{{end}}{{if .Cur}} cur{{end}}"{{end}}>{{if or .Kids .Lazy}}<button type="button" aria-label="Toggle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg></button>{{else}}<span class="sp"></span>{{end}}<a href="{{.Href}}" class="ico ico-folder{{if .Hidden}} ico-dim{{end}}">{{.Name}}</a>{{if .Kids}}<ul>{{range .Kids}}{{template "node" .}}{{end}}</ul>{{end}}</li>{{end}}
 {{define "list"}}<ul>{{range .}}{{template "node" .}}{{end}}</ul>{{end}}

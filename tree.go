@@ -14,6 +14,7 @@ type node struct {
 	Open       bool // expanded
 	Cur        bool // the directory being viewed
 	Lazy       bool // children not loaded yet; the page fetches them on demand
+	Hidden     bool // dotfile, only ever true alongside -all
 	Kids       []node
 }
 
@@ -50,7 +51,7 @@ func treeKids(full, rel, base string, depth int, segs []string, query string) []
 			r = rel + "/" + d
 		}
 		u := url.URL{Path: base + r + "/", RawQuery: query}
-		n := node{Name: d, Href: u.String(), Lazy: true}
+		n := node{Name: d, Href: u.String(), Lazy: true, Hidden: strings.HasPrefix(d, ".")}
 		if depth < len(segs) && d == segs[depth] {
 			n.Open, n.Lazy = true, false
 			n.Cur = depth+1 == len(segs)

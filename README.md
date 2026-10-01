@@ -31,6 +31,7 @@ Then open http://localhost:8080/.
 | `-all`  | `false` | Show dotfiles (hidden by default)  |
 | `-hostname` | (Host header) | Hostname to display instead of the request's |
 | `-tree` | `false` | Enable the folder tree sidebar     |
+| `-icons` | `false` | Show file-type icons in the listing |
 
 ## Docker
 
@@ -47,3 +48,10 @@ With Docker Compose, edit the volume path in `compose.yaml`, then:
 ```
 docker compose up -d
 ```
+
+## Licensing
+
+With `-icons`, file/folder icons come from the old GNOME 2 desktop icon theme
+(https://www.gnome.org), licensed GPL-2.0-or-later - not the MIT license the
+rest of this project is under (see [LICENSE](LICENSE)). The icon PNGs live
+under `web/icons/`.
