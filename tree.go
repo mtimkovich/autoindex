@@ -15,6 +15,7 @@ type node struct {
 	Cur        bool // the directory being viewed
 	Lazy       bool // children not loaded yet; the page fetches them on demand
 	Hidden     bool // dotfile, only ever true alongside -all
+	Root       bool // the sidebar's top node (labelled with the host), not a real directory
 	Kids       []node
 }
 
@@ -67,8 +68,8 @@ func treeKids(full, rel, base string, depth int, segs []string, query string) []
 func treeRoot(host string, segs []string, query string) node {
 	base := up(len(segs))
 	u := url.URL{Path: base, RawQuery: query}
-	return node{Name: host, Href: u.String(), Open: true, Cur: len(segs) == 0,
-		Kids: treeKids(*root, "", base, 0, segs, query)}
+	return node{Name: host, Href: u.String(), Open: true, Cur: len(segs) == 0, Root: true,
+		Kids: treeKids(root, "", base, 0, segs, query)}
 }
 
 // encodeShown builds the query string every link on the page carries

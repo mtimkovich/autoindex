@@ -7,4 +7,4 @@ services:
       - "5555:8080"
     volumes:
       - /volume1/nginx/files:/data:ro
-    command: ["-tree", "-hostname", "naxx"]
+    command: ["-tih", "-H", "naxx"]

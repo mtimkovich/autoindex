@@ -3,7 +3,6 @@ package main
 
 import (
 	"embed"
-	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -18,6 +17,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/spf13/pflag"
 )
 
 //go:embed web/index.html
@@ -35,31 +36,41 @@ var iconsFS embed.FS
 var tmpl = template.Must(template.New("index").Parse(indexHTML))
 
 // Path the page's CSS and JS are served from. Handled before any user files,
-// so it can't collide with something in -root; a real file at this exact
-// path would just be shadowed.
+// so it can't collide with something in the served directory; a real file at
+// this exact path would just be shadowed.
 const assetPath = "/_autoindex/"
 
 const maxName = 50 // nginx truncates displayed names at 50 columns
 
 var (
-	root  = flag.String("root", ".", "directory to serve")
-	port  = flag.Int("port", 8080, "port to listen on")
-	all   = flag.Bool("all", false, "show dotfiles")
-	tree  = flag.Bool("tree", false, "enable the folder tree sidebar")
-	icons = flag.Bool("icons", false, "show file-type icons in the listing")
-	host  = flag.String("hostname", "", "hostname to display (default: the request's Host header)")
+	port  = pflag.IntP("port", "p", 8080, "port to listen on")
+	all   = pflag.BoolP("all", "a", false, "show dotfiles")
+	tree  = pflag.BoolP("tree", "t", false, "enable the folder tree sidebar")
+	icons = pflag.BoolP("icons", "i", false, "show file-type icons in the listing")
+	human = pflag.BoolP("human-readable", "h", false, `show modification times as relative ("3 hours ago") instead of an absolute timestamp`)
+	host  = pflag.StringP("hostname", "H", "", "hostname to display (default: the request's Host header)")
+
+	root string // directory to serve; the positional arg, defaulting to "."
 )
 
 func main() {
-	flag.Parse()
-	abs, err := filepath.Abs(*root)
+	pflag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s [flags] [directory]\n\n", os.Args[0])
+		pflag.PrintDefaults()
+	}
+	pflag.Parse()
+	root = "."
+	if pflag.NArg() > 0 {
+		root = pflag.Arg(0)
+	}
+	abs, err := filepath.Abs(root)
 	if err == nil {
 		abs, err = filepath.EvalSymlinks(abs)
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
-	*root = abs
+	root = abs
 	log.Printf("serving %s at http://localhost:%d/", abs, *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), http.HandlerFunc(serve)))
 }
@@ -111,7 +122,7 @@ func resolve(p string) (string, bool) {
 	if err != nil {
 		return "", false
 	}
-	rel, err := filepath.Rel(*root, full)
+	rel, err := filepath.Rel(root, full)
 	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "", false
 	}
@@ -129,7 +140,7 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	dir := filepath.Join(*root, filepath.FromSlash(p))
+	dir := filepath.Join(root, filepath.FromSlash(p))
 	full, ok := resolve(dir)
 	if !ok {
 		http.NotFound(w, r)
@@ -175,35 +186,27 @@ type row struct {
 	Bytes                  int64
 }
 
-// iconKind maps a lowercase file extension to one of the icon classes
-// defined in style.css. Anything not listed gets "text" (a generic page).
-var iconKind = map[string]string{
-	".txt": "text", ".md": "text", ".log": "text", ".ini": "text", ".cfg": "text",
-	".conf": "text", ".yaml": "text", ".yml": "text", ".toml": "text", ".csv": "text",
-	".rtf": "text", ".doc": "text", ".docx": "text",
-
-	".jpg": "image", ".jpeg": "image", ".png": "image", ".gif": "image", ".bmp": "image",
-	".svg": "image", ".webp": "image", ".ico": "image", ".tiff": "image", ".heic": "image",
-
-	".mp3": "audio", ".wav": "audio", ".flac": "audio", ".ogg": "audio", ".m4a": "audio",
-	".aac": "audio", ".wma": "audio",
-
-	".mp4": "video", ".mkv": "video", ".avi": "video", ".mov": "video", ".webm": "video",
-	".wmv": "video", ".flv": "video", ".m4v": "video",
-
-	".zip": "archive", ".tar": "archive", ".gz": "archive", ".tgz": "archive",
-	".bz2": "archive", ".xz": "archive", ".rar": "archive", ".7z": "archive", ".iso": "archive",
-
-	".pdf": "pdf",
-
-	".go": "code", ".js": "code", ".ts": "code", ".py": "code", ".java": "code",
-	".c": "code", ".h": "code", ".cpp": "code", ".rs": "code", ".rb": "code",
-	".php": "code", ".sh": "code", ".html": "code", ".htm": "code", ".css": "code",
-	".json": "code", ".xml": "code", ".sql": "code", ".swift": "code", ".kt": "code",
+var iconsByExt = map[string][]string{
+	"image":   {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".ico", ".tiff", ".heic"},
+	"audio":   {".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac", ".wma"},
+	"video":   {".mp4", ".mkv", ".avi", ".mov", ".webm", ".wmv", ".flv", ".m4v"},
+	"archive": {".zip", ".tar", ".gz", ".tgz", ".bz2", ".xz", ".rar", ".7z", ".iso"},
+	"pdf":     {".pdf"},
+	"code":    {".go", ".js", ".ts", ".py", ".java", ".c", ".h", ".cpp", ".rs", ".rb", ".php", ".sh", ".html", ".htm", ".css", ".json", ".xml", ".sql", ".swift", ".kt"},
 }
 
+var extIcon = func() map[string]string {
+	m := make(map[string]string)
+	for icon, exts := range iconsByExt {
+		for _, ext := range exts {
+			m[ext] = icon
+		}
+	}
+	return m
+}()
+
 func iconOf(name string) string {
-	if k, ok := iconKind[strings.ToLower(filepath.Ext(name))]; ok {
+	if k, ok := extIcon[strings.ToLower(filepath.Ext(name))]; ok {
 		return k
 	}
 	return "text"
@@ -217,6 +220,16 @@ type crumb struct {
 // crumbSep is the separator icon between breadcrumbs. It's a fixed, trusted
 // string, never built from user input, so rendering it unescaped is safe.
 const crumbSep = template.HTML(`<svg class="sep" viewBox="0 0 24 24"><path d="M10 6l-1.4 1.4 4.6 4.6-4.6 4.6 1.4 1.4 6-6z"/></svg>`)
+
+// attribution is an HTML comment crediting the project. html/template strips
+// literal <!-- --> comments out of the template source at parse time, so
+// this has to be injected as a template.HTML value (trusted, like crumbSep)
+// rather than written directly into index.html.
+const attribution = template.HTML(`<!--
+     autoindex by Max Timkovich
+
+     https://github.com/mtimkovich/autoindex
+-->`)
 
 // up returns the relative link n directories above the current one.
 func up(n int) string {
@@ -268,7 +281,7 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 			continue
 		}
 		rw := row{Name: e.Name(), Key: strings.ToLower(e.Name()), Unix: fi.ModTime().Unix(),
-			Bytes: fi.Size(), Date: humanTime(fi.ModTime(), now), Size: "-",
+			Bytes: fi.Size(), Date: formatModTime(fi.ModTime(), now), Size: "-",
 			Full:   fi.ModTime().Format("2006-01-02 15:04:05 MST"),
 			Hidden: strings.HasPrefix(e.Name(), ".")}
 		u := url.URL{Path: "./" + e.Name()}
@@ -332,7 +345,7 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	data := map[string]any{"Title": title, "Crumbs": crumbs, "ParentHref": parentHref, "Rows": rows, "Base": base,
 		"NamePad": pad("Name  ", nameW), "DatePad": pad("Modified  ", dateW), "SizePad": pad("Size  ", sizeW),
-		"Icons": *icons}
+		"Icons": *icons, "Attribution": attribution}
 	if *tree {
 		data["Tree"] = treeRoot(host, segs, navQuery)
 		data["TreeShown"] = treeShown
@@ -365,6 +378,15 @@ func humanSize(n int64) string {
 		return fmt.Sprintf("%.1f %cB", f, units[i])
 	}
 	return fmt.Sprintf("%.0f %cB", f, units[i])
+}
+
+// formatModTime renders a modification time per -human-time: relative
+// ("3 hours ago") when on, or a fixed absolute timestamp when off.
+func formatModTime(t, now time.Time) string {
+	if *human {
+		return humanTime(t, now)
+	}
+	return t.Format("2006-01-02 15:04")
 }
 
 func humanTime(t, now time.Time) string {

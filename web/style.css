@@ -14,7 +14,7 @@ pre {
 }
 
 h1 {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 a {
@@ -88,6 +88,22 @@ i.desc svg {
   background-image: none;
 }
 
+/* "Name" has no icon of its own (it's a column label, not a file), but
+   still reserves icon-width padding so "Modified"/"Size" line up with the
+   data rows (see main.go/index.html). Shift it visually back over that
+   reserved space instead of leaving it after, so it sits above the icons
+   themselves rather than above the filenames - relative positioning only
+   repositions the paint, so "Modified"/"Size" don't move with it (a
+   negative margin or text-indent would instead shift the whole line). */
+[data-k="name"] {
+  position: relative;
+  left: -1.7em;
+}
+
+.no-icons [data-k="name"] {
+  left: 0;
+}
+
 /* Dotfiles shown under -all: a translucent white veil over the icon
    (rather than opacity on the whole .ico element) so only the icon fades,
    not the filename text next to it. */
@@ -96,35 +112,40 @@ i.desc svg {
 }
 
 .ico-folder {
-  --icon: url("icons/folder.png");
+  --icon: url("icons/gnome-fs-directory.png");
+}
+
+/* The tree sidebar's top node (labelled with the host, not a real directory). */
+.ico-host {
+  --icon: url("icons/gnome-fs-server.png");
 }
 
 .ico-text {
-  --icon: url("icons/text.png");
+  --icon: url("icons/gnome-mime-text.png");
 }
 
 .ico-image {
-  --icon: url("icons/image.png");
+  --icon: url("icons/gnome-mime-image.png");
 }
 
 .ico-audio {
-  --icon: url("icons/audio.png");
+  --icon: url("icons/gnome-mime-audio.png");
 }
 
 .ico-video {
-  --icon: url("icons/video.png");
+  --icon: url("icons/gnome-mime-video.png");
 }
 
 .ico-archive {
-  --icon: url("icons/archive.png");
+  --icon: url("icons/gnome-mime-application-x-archive.png");
 }
 
 .ico-pdf {
-  --icon: url("icons/pdf.png");
+  --icon: url("icons/gnome-mime-application-pdf.png");
 }
 
 .ico-code {
-  --icon: url("icons/code.png");
+  --icon: url("icons/gnome-mime-text-x-c.png");
 }
 
 #tt {
@@ -266,6 +287,6 @@ nav .cur > a {
   }
 
   h1 {
-    font-size: 1.3em;
+    font-size: 1em;
   }
 }
