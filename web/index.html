@@ -11,7 +11,7 @@
 
 {{if .Tree}}
   <input type="checkbox" id="tt"{{if .TreeShown}} checked{{end}}>
-  <script>try { document.getElementById("tt").checked = localStorage.getItem("tree") === "1"; } catch (e) {}</script>
+  <script>try { const v = localStorage.getItem("tree"); document.getElementById("tt").checked = v === null ? !matchMedia("(max-width: 700px)").matches : v === "1"; } catch (e) {}</script>
   <div class="wrap">
     <nav id="tree"><ul>{{template "node" .Tree}}</ul></nav>
     <main>

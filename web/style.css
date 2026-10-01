@@ -261,6 +261,8 @@ nav .cur > a {
   font-weight: bold;
 }
 
+/* Same breakpoint as index.html's inline script, which uses it to default
+   the tree sidebar closed on mobile - keep both in sync if this changes. */
 @media (max-width: 700px) {
   .wrap {
     display: block;

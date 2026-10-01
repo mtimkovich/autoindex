@@ -73,14 +73,15 @@ func treeRoot(host string, segs []string, query string) node {
 }
 
 // encodeShown builds the query string every link on the page carries
-// forward: "show=1" when the sidebar itself should stay visible across a
+// forward: "show=0" when the sidebar itself should stay hidden across a
 // click, which without JavaScript is otherwise lost (script.js instead
 // remembers it in localStorage, so JS pages don't rely on this at all and
-// keep their URLs clean via a history.replaceState call). Returns "" when
-// the sidebar isn't shown, so most links carry nothing extra at all.
+// keep their URLs clean via a history.replaceState call). The sidebar is
+// shown by default whenever -tree is on, so returns "" in that (common)
+// case - most links carry nothing extra at all.
 func encodeShown(shown bool) string {
-	if !shown {
+	if shown {
 		return ""
 	}
-	return "show=1"
+	return "show=0"
 }

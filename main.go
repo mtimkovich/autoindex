@@ -258,7 +258,7 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 	var navQuery, toggleHref string
 	treeShown := false
 	if *tree {
-		treeShown = req.URL.Query().Get("show") == "1"
+		treeShown = req.URL.Query().Get("show") != "0" // shown by default
 		navQuery = encodeShown(treeShown)
 		toggleHref = "?" + encodeShown(!treeShown)
 	}
