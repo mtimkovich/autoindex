@@ -282,8 +282,13 @@ func listing(w http.ResponseWriter, req *http.Request, p, full string, entries [
 		}
 		rw := row{Name: e.Name(), Key: strings.ToLower(e.Name()), Unix: fi.ModTime().Unix(),
 			Bytes: fi.Size(), Date: formatModTime(fi.ModTime(), now), Size: "-",
-			Full:   fi.ModTime().Format("2006-01-02 15:04:05 MST"),
 			Hidden: strings.HasPrefix(e.Name(), ".")}
+		if *human {
+			// Only meaningful as a hover tooltip when the displayed date is
+			// the abbreviated relative form; with -h off, .Date is already
+			// the full timestamp, so showing this too would be redundant.
+			rw.Full = fi.ModTime().Format("2006-01-02 15:04:05 MST")
+		}
 		u := url.URL{Path: "./" + e.Name()}
 		if fi.IsDir() {
 			rw.Dir, rw.Bytes = 1, 0
