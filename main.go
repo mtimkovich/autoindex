@@ -391,7 +391,7 @@ func formatModTime(t, now time.Time) string {
 	if *human {
 		return humanTime(t, now)
 	}
-	return t.Format("2006-01-02 15:04")
+	return t.Format("Jan _2, 2006 15:04") // "_2" space-pads the day to 2 digits
 }
 
 func humanTime(t, now time.Time) string {
