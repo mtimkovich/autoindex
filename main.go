@@ -134,7 +134,17 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		serveAsset(w, asset)
 		return
 	}
-	// Clean against a rooted path so ".." can never climb above root.
+	// Reject ".." outright rather than silently cleaning it away: cleaning
+	// "/files/.." would otherwise just serve "/" instead of 404ing like a
+	// request for a path that doesn't exist should.
+	for _, seg := range strings.Split(r.URL.Path, "/") {
+		if seg == ".." {
+			http.NotFound(w, r)
+			return
+		}
+	}
+	// Clean against a rooted path so stray ".."/"." segments that survived
+	// the check above (there shouldn't be any) still can't climb above root.
 	p := path.Clean("/" + r.URL.Path)
 	if hidden(p) {
 		http.NotFound(w, r)
