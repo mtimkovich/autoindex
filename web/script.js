@@ -94,7 +94,16 @@ if (tree) {
       // current on THIS page and must keep showing that way here, even
       // though the cached copy about to be stripped of it is not.
       const clone = ul.cloneNode(true);
-      [].forEach.call(clone.querySelectorAll("a"), function (x) { x.href = new URL(x.getAttribute("href"), a.href).href; });
+      // Resolve against the PAGE's own URL, not this folder's (li's) own
+      // href: every link the server renders into the page - at any depth -
+      // is relative to the page itself (the same "../../.." prefix is
+      // threaded through the whole tree, unlike the AJAX ?tree=1 endpoint
+      // below, which deliberately renders paths relative to the expanded
+      // folder instead). Resolving a deeply-nested link (more "../"s than
+      // this folder is deep) against this folder's own, shallower href
+      // exhausts those "../"s early and silently clips the path - which is
+      // how a cached link ends up missing a leading reverse-proxy prefix.
+      [].forEach.call(clone.querySelectorAll("a"), function (x) { x.href = new URL(x.getAttribute("href"), location.href).href; });
       htmlCache[p] = stripCur(clone).outerHTML;
     }
   });
