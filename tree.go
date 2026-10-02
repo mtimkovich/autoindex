@@ -39,6 +39,31 @@ func subdirs(full string) []string {
 	return names
 }
 
+// hasSubdir reports whether full contains at least one visible subdirectory
+// of its own. Used so a lazy node's toggle button/chevron is only shown when
+// there's actually something to expand into - otherwise the page would show
+// one speculatively, then have to remove it once a click's fetch comes back
+// empty, a visible flash for any childless folder.
+func hasSubdir(full string) bool {
+	entries, err := os.ReadDir(full)
+	if err != nil {
+		return false
+	}
+	for _, e := range entries {
+		if hidden(e.Name()) {
+			continue
+		}
+		target, ok := resolve(filepath.Join(full, e.Name()))
+		if !ok {
+			continue
+		}
+		if fi, err := os.Stat(target); err == nil && fi.IsDir() {
+			return true
+		}
+	}
+	return false
+}
+
 // treeKids builds the child nodes of full. rel is full's path below the link
 // prefix base, depth its number of segments, and segs the path being viewed:
 // children along that path are expanded, all others are left to load lazily.
@@ -52,11 +77,13 @@ func treeKids(full, rel, base string, depth int, segs []string, query string) []
 			r = rel + "/" + d
 		}
 		u := url.URL{Path: base + r + "/", RawQuery: query}
-		n := node{Name: d, Href: u.String(), Lazy: true, Hidden: strings.HasPrefix(d, ".")}
+		n := node{Name: d, Href: u.String(), Hidden: strings.HasPrefix(d, ".")}
 		if depth < len(segs) && d == segs[depth] {
-			n.Open, n.Lazy = true, false
+			n.Open = true
 			n.Cur = depth+1 == len(segs)
 			n.Kids = treeKids(filepath.Join(full, d), r, base, depth+1, segs, query)
+		} else {
+			n.Lazy = hasSubdir(filepath.Join(full, d))
 		}
 		out = append(out, n)
 	}
