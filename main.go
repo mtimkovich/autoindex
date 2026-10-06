@@ -166,7 +166,23 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !fi.IsDir() {
-		http.ServeFile(w, r, full)
+		// Not http.ServeFile: it redirects any ".../index.html" request to the
+		// directory itself, so a file named index.html could never be opened.
+		f, err := os.Open(full)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		defer f.Close()
+		// Show HTML as text rather than rendering it: this is a file
+		// browser, and rendering a served page on the app's own origin
+		// isn't what anyone opening a file here is after.
+		switch strings.ToLower(path.Ext(p)) {
+		case ".html", ".htm":
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+		}
+		http.ServeContent(w, r, path.Base(p), fi.ModTime(), f)
 		return
 	}
 	if !strings.HasSuffix(r.URL.Path, "/") {
