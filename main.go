@@ -84,7 +84,11 @@ func serveAsset(w http.ResponseWriter, name string) {
 			http.NotFound(w, nil)
 			return
 		}
-		w.Header().Set("Content-Type", "image/png")
+		ctype := "image/png"
+		if strings.HasSuffix(iconName, ".svg") {
+			ctype = "image/svg+xml" // browsers won't render an SVG served as image/png
+		}
+		w.Header().Set("Content-Type", ctype)
 		w.Header().Set("Cache-Control", "public, max-age=3600")
 		w.Write(data)
 		return
@@ -202,7 +206,7 @@ var iconsByExt = map[string][]string{
 	"video":   {".mp4", ".mkv", ".avi", ".mov", ".webm", ".wmv", ".flv", ".m4v"},
 	"archive": {".zip", ".tar", ".gz", ".tgz", ".bz2", ".xz", ".rar", ".7z", ".iso"},
 	"pdf":     {".pdf"},
-	"code":    {".go", ".js", ".ts", ".py", ".java", ".c", ".h", ".cpp", ".rs", ".rb", ".php", ".sh", ".html", ".htm", ".css", ".json", ".xml", ".sql", ".swift", ".kt"},
+	"code":    {".go", ".js", ".ts", ".py", ".java", ".c", ".h", ".cpp", ".rs", ".rb", ".php", ".sh", ".html", ".htm", ".css", ".json", ".xml", ".sql", ".swift", ".kt", ".exe"},
 }
 
 var extIcon = func() map[string]string {

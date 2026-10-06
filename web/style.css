@@ -63,7 +63,6 @@ i.desc svg {
   width: .9em;
   height: .9em;
   vertical-align: -.08em;
-  margin: 0 .2em;
   fill: #999;
 }
 
@@ -82,10 +81,17 @@ i.desc svg {
 /* -icons defaults to off: body.no-icons strips the icon rather than
    gating every "ico ico-X" class in the templates, since those classes
    are shared with the tree's AJAX fragment response, which has no page
-   data (and so no flag) to check against. */
-.no-icons .ico {
+   data (and so no flag) to check against. Only the file listing (the
+   <pre>) is stripped; the tree sidebar swaps the GNOME icons for a plain
+   folder glyph instead (overriding --icon rather than background-image, so
+   .ico-dim's veil on dotfile folders still applies). */
+.no-icons pre .ico {
   padding-left: 0;
   background-image: none;
+}
+
+.no-icons nav .ico {
+  --icon: url("icons/folder.svg");
 }
 
 /* "Name" has no icon of its own (it's a column label, not a file), but
